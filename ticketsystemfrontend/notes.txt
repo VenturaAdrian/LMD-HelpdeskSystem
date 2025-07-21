@@ -1,0 +1,34 @@
+ALERTS LOG IN & REGISTER
+
+import {Alert } from 'react-bootstrap'
+
+const [error, setError] = useState('');
+
+{/* ALERT BAR */}
+    {loginError && (
+    <div 
+        className="position-fixed top-0 start-50 translate-middle-x mt-3"
+        style={{ zIndex: 9999, minWidth: '300px' }}
+    >
+    <Alert variant="danger" onClose={() => setLoginError('')} dismissible>
+        {loginError}
+    </Alert>
+    </div>
+    )}
+
+-------------================------------------=============----------=========-------------
+
+import { useNavigate } from 'react-router';
+
+const navigate = useNavigate();
+
+
+
+    Incident, Request, Informational / Inquiry
+
+I want to once selected category: Hardware to put a template under Description;
+
+Issue:
+When did it start?:
+Have you tried any troubleshooting steps?:
+Additional notes
