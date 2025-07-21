@@ -4,6 +4,7 @@ import MainLayout from 'layouts/MainLayout';
 import { Navigate } from 'react-router-dom';
 
 
+
 // Lazy imports
 const DashboardSales = lazy(() => import('../views/dashboard/DashSales/index'));
 const Typography = lazy(() => import('../views/ui-elements/basic/BasicTypography'));
@@ -12,7 +13,7 @@ const FeatherIcon = lazy(() => import('../views/ui-elements/icons/Feather'));
 const FontAwesome = lazy(() => import('../views/ui-elements/icons/FontAwesome'));
 const MaterialIcon = lazy(() => import('../views/ui-elements/icons/Material'));
 const Login = lazy(() => import('../views/auth/login'));
-const Register = lazy(() => import('../views/auth/register'));
+
 const Sample = lazy(() => import('../views/sample'));
 
 
@@ -23,7 +24,10 @@ const Announcements = lazy(() => import('views/pages/announcements'));
 const Knowledgebase = lazy(() => import('views/pages/knowledgebase'));
 const Reports = lazy(() => import('views/pages/reports'));
 const Alltickets = lazy(() => import('views/tickets/alltickets'));
+const Myticket = lazy(() => import('views/tickets/myticket'));
 const Profile = lazy(() => import('views/pages/profile'));
+const Register = lazy(() => import('views/auth/register'))
+
 
 
 // Spinner fallback
@@ -47,8 +51,6 @@ const RoleAccess = () => {
   }
 }
 
-
-
 const MainRoutes = {
   path: '/',
   element: <RoleAccess />,
@@ -56,6 +58,10 @@ const MainRoutes = {
     {
       path: '/dashboard/sales',
       element: withSpinner(<DashboardSales />)
+    },
+    {
+      path: '/register',
+      element: withSpinner(<Register />)
     },
     {
       path: '/typography',
@@ -112,6 +118,10 @@ const MainRoutes = {
     {
       path: '/profile',
       element: withSpinner(<Profile />)
+    },
+    {
+      path: '/my-ticket',
+      element: withSpinner(<Myticket />)
     }
 
 

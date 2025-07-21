@@ -5,258 +5,257 @@ var Sequelize = require('sequelize');
 
 require('dotenv').config();
 
-  var knex = require("knex")({
-    client: 'mssql',
-    connection: {
-      user: process.env.USER,
-      password: process.env.PASSWORD,
-      server: process.env.SERVER,
-      database: process.env.DATABASE,
-      port: parseInt(process.env.APP_SERVER_PORT),
-      options: {
-        enableArithAbort: true,
-       
-      }
-    },
-  });
+var knex = require("knex")({
+  client: 'mssql',
+  connection: {
+    user: process.env.USER,
+    password: process.env.PASSWORD,
+    server: process.env.SERVER,
+    database: process.env.DATABASE,
+    port: parseInt(process.env.APP_SERVER_PORT),
+    options: {
+      enableArithAbort: true,
 
-    var db = new Sequelize(process.env.DATABASE, process.env.USER, process.env.PASSWORD,{
-      host: process.env.SERVER,
-      dialect: "mssql",
-      port: parseInt(process.env.APP_SERVER_PORT),
+    }
+  },
+});
+
+var db = new Sequelize(process.env.DATABASE, process.env.USER, process.env.PASSWORD, {
+  host: process.env.SERVER,
+  dialect: "mssql",
+  port: parseInt(process.env.APP_SERVER_PORT),
+});
+
+const { DataTypes } = Sequelize;
+
+const Users1 = db.define('users_master', {
+  user_id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true
+  },
+  user_name: {
+    type: DataTypes.STRING
+  },
+  emp_position: {
+    type: DataTypes.STRING
+  },
+  emp_department: {
+    type: DataTypes.STRING
+  },
+  emp_FirstName: {
+    type: DataTypes.STRING
+  },
+  emp_LastName: {
+    type: DataTypes.STRING
+  },
+  emp_email: {
+    type: DataTypes.STRING
+  },
+  emp_role: {
+    type: DataTypes.STRING
+  },
+  pass_word: {
+    type: DataTypes.STRING
+  },
+  created_by: {
+    type: DataTypes.STRING
+  },
+  created_at: {
+    type: DataTypes.STRING
+  },
+  is_active: {
+    type: DataTypes.STRING
+  }
+}, {
+  freezeTableName: false,
+  timestamps: false,
+  createdAt: false,
+  updatedAt: false,
+  tableName: 'users_master'
+})
+
+router.get('/login', async function (req, res, next) {
+  console.log(Users1)
+  try {
+    const user = await Users1.findAll({
+      where: {
+        user_name: req.query.user_name
+      }
     });
 
-     const { DataTypes } = Sequelize;
+    if (!user || user.length === 0) {
+      console.log('USER NOT FOUND')
+      return res.status(404).json({ msg: 'User not found! Try again...' })
+    }
 
-    const Users1 = db.define('users_master',{
-      user_id:{
-        type:DataTypes.INTEGER,
-        primaryKey: true
-      },
-      user_name:{
-        type: DataTypes.STRING
-      },
-      emp_position:{
-        type: DataTypes.STRING
-      },
-      emp_department:{
-        type: DataTypes.STRING
-      },
-      emp_FirstName: {
-        type: DataTypes.STRING
-      },
-      emp_LastName: {
-        type: DataTypes.STRING
-      },
-      emp_email: {
-        type: DataTypes.STRING
-      },
-      emp_role:{
-        type: DataTypes.STRING
-      },
-      pass_word: {
-        type: DataTypes.STRING
-      },
-      created_by: {
-        type: DataTypes.STRING
-      },
-      created_at: {
-        type: DataTypes.STRING
-      },
-      is_active: {
-        type: DataTypes.STRING
+    if (req.query.pass_word !== user[0].pass_word) {
+      console.log('INCORRECT PASSWORD')
+      return res.status(401).json({ msg: 'Incorrect password. Try again...' })
+    }
+
+    console.log('USE RESULTS:', user[0])
+
+
+    await knex('users_master')
+      .where({ user_id: user[0].user_id })
+      .update({ is_active: 1 });
+
+    const result = {
+      user_id: user[0].id_master,
+      user_name: user[0].user_name,
+      emp_department: user[0].emp_department,
+      emp_position: user[0].emp_position,
+      emp_email: user[0].emp_email,
+      emp_FirstName: user[0].emp_FirstName,
+      emp_LastName: user[0].emp_LastName,
+      is_active: user[0].is_active,
+      emp_role: user[0].emp_role,
+    };
+
+    res.json(result);
+
+  } catch (err) {
+    console.log("Error logging in: ", err)
+    return res.status(404).json({ msg: 'User not found! Try again...' })
+
+  }
+})
+
+router.post('/register', async function (req, res, next) {
+  const currentTimestamp = new Date();
+  const {
+    emp_firstname,
+    emp_lastname,
+    user_name,
+    pass_word,
+    emp_email,
+    emp_role,
+    emp_department,
+    emp_position,
+    current_user
+  } = req.body
+
+  try {
+    await knex('users_master').insert({
+      emp_FirstName: emp_firstname,
+      emp_LastName: emp_lastname,
+      user_name: user_name,
+      pass_word: pass_word,
+      emp_email: emp_email,
+      emp_role: emp_role,
+      emp_department: emp_department,
+      emp_position: emp_position,
+      created_by: current_user,
+      created_at: currentTimestamp,
+      is_active: 1
+    })
+    console.log(`User registered ${user_name}`);
+    res.status(200).json({ message: "User registered successfully" });
+  } catch (err) {
+    return res.status(404).json({ msg: 'Unable to Register user!' + ` ${user_name}` })
+
+  }
+})
+
+//--------------------------------------------------------------------//
+
+router.post('/test', async function (req, res, next) {
+  const { id_master } = req.body
+  console.log("TEST FROM FRONTEND: ", id_master)
+})
+
+
+const Users = db.define('users_master', {
+  id_master: {
+    type: DataTypes.INTEGER,
+    primaryKey: true
+  },
+  user_name: {
+    type: DataTypes.STRING
+  },
+  emp_position: {
+    type: DataTypes.STRING
+  },
+  emp_firstname: {
+    type: DataTypes.STRING
+  },
+  emp_lastname: {
+    type: DataTypes.STRING
+  },
+  emp_email: {
+    type: DataTypes.STRING
+  },
+  emp_role: {
+    type: DataTypes.STRING
+  },
+  pass_word: {
+    type: DataTypes.STRING
+  },
+  created_by: {
+    type: DataTypes.STRING
+  },
+  created_at: {
+    type: DataTypes.STRING
+  },
+  is_active: {
+    type: DataTypes.STRING
+  }
+}, {
+  freezeTableName: false,
+  timestamps: false,
+  createdAt: false,
+  updatedAt: false,
+  tableName: 'users_master'
+})
+
+router.get('/login23', async function (req, res, next) {
+  try {
+    const user = await Users.findAll({
+      where: {
+        user_name: req.query.user_name
       }
-    },{
-      freezeTableName: false,
-      timestamps: false,
-      createdAt: false,
-      updatedAt: false,
-      tableName: 'users_master'
-    })
-
-    router.get('/login', async function (req, res, next) {
-      console.log(Users1)
-      try{
-        const user = await Users1.findAll({
-          where:{
-            user_name: req.query.user_name
-          }
-        });
-
-        if(!user || user.length === 0){
-          console.log('USER NOT FOUND')
-          return res.status(404).json({msg: 'User not found! Try again...'})
-        }
-
-        if(req.query.pass_word !== user[0].pass_word){
-          console.log('INCORRECT PASSWORD')
-          return res.status(401).json({msg: 'Incorrect password. Try again...'})
-        }
-
-        console.log('USE RESULTS:', user[0] )
+    });
 
 
-        await knex('users_master')
-          .where({ user_id: user[0].user_id })
-          .update({ is_active: 1 });
+    if (!user || user.length === 0) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
 
-          const result = {
-          user_id: user[0].id_master,
-          user_name: user[0].user_name,
-          emp_department: user[0].emp_department,
-          emp_position: user[0].emp_position,
-          emp_email: user[0].emp_email,
-          emp_FirstName: user[0].emp_FirstName,
-          emp_LastName: user[0].emp_LastName,
-          is_active: user[0].is_active,
-          emp_role: user[0].emp_role,
-        };
+    if (req.query.password !== user[0].pass_word) {
+      return res.status(401).json({ msg: 'Incorrect password' });
+    }
 
-        res.json(result);
-
-      }catch(err){
-        console.log("Error logging in: " ,err)
-        return res.status(404).json({msg: 'User not found! Try again...'})
-
-      }
-    })
-
-    router.post('/register', async function (req, res, next) {
-      const currentTimestamp = new Date();
-      const {
-        emp_firstname,
-        emp_lastname,
-        user_name,
-        pass_word,
-        emp_email,
-        emp_role,
-        emp_department,
-        emp_position
-      } = req.body
-      
-      try{
-        await knex('users_master').insert({
-          emp_FirstName: emp_firstname,
-          emp_LastName: emp_lastname,
-          user_name: user_name,
-          pass_word: pass_word,
-          emp_email: emp_email,
-          emp_role: emp_role,
-          emp_department: emp_department,
-          emp_position: emp_position,
-          created_by: 'asdasd',
-          created_at: currentTimestamp,
-          updated_by: 'aasd',
-          updated_at: currentTimestamp,
-          is_active: 1
-        })
-        console.log(`User registered ${user_name}`);
-        res.status(200).json({ message: "User registered successfully" });
-      }catch(err){
-        return res.status(404).json({msg: 'Unable to Register user!' + ` ${user_name}`})
-
-      }
-    })
-
-    //--------------------------------------------------------------------//
-
-    router.post('/test', async function (req, res, next){
-      const {id_master} = req.body
-      console.log("TEST FROM FRONTEND: ", id_master)
-    })
-    
-
-    const Users = db.define('users_master',{
-      id_master:{
-        type:DataTypes.INTEGER,
-        primaryKey: true
-      },
-      user_name:{
-        type: DataTypes.STRING
-      },
-      emp_position:{
-        type: DataTypes.STRING
-      },
-      emp_firstname: {
-        type: DataTypes.STRING
-      },
-      emp_lastname: {
-        type: DataTypes.STRING
-      },
-      emp_email: {
-        type: DataTypes.STRING
-      },
-      emp_role:{
-        type: DataTypes.STRING
-      },
-      pass_word: {
-        type: DataTypes.STRING
-      },
-      created_by: {
-        type: DataTypes.STRING
-      },
-      created_at: {
-        type: DataTypes.STRING
-      },
-      is_active: {
-        type: DataTypes.STRING
-      }
-    },{
-      freezeTableName: false,
-      timestamps: false,
-      createdAt: false,
-      updatedAt: false,
-      tableName: 'users_master'
-    })
-
-  router.get('/login23', async function (req, res, next) {
-    try {
-        const user = await Users.findAll({
-          where: {
-          user_name: req.query.user_name
-          }
-        });        
-         
-
-        if (!user || user.length === 0) {
-          return res.status(404).json({ msg: 'User not found' });
-        }
-        
-        if(req.query.password !== user[0].pass_word){
-          return res.status(401).json({ msg: 'Incorrect password' });   
-        }
-
-        await knex('users_master')
+    await knex('users_master')
       .where({ id_master: user[0].id_master })
       .update({ is_active: 1 });
 
-        console.log("The username: ", user[0].user_name);
-          console.log("Position", user[0].emp_position);
-          console.log("First Name: ", user[0].emp_firstname);
-        console.log("Last Name: ", user[0].emp_lastname);
-        console.log("Role: ", user[0].emp_role);
-        console.log("The PWD: ",user[0].pass_word);
+    console.log("The username: ", user[0].user_name);
+    console.log("Position", user[0].emp_position);
+    console.log("First Name: ", user[0].emp_firstname);
+    console.log("Last Name: ", user[0].emp_lastname);
+    console.log("Role: ", user[0].emp_role);
+    console.log("The PWD: ", user[0].pass_word);
 
 
-        const result = {
-          id_master: user[0].id_master,
-          user_name: user[0].user_name,
-          emp_position: user[0].emp_position,
-          first_name: user[0].emp_firstname,
-          last_name: user[0].emp_lastname,
-          is_active: user[0].is_active,
-          role: user[0].emp_role,
-        };
+    const result = {
+      id_master: user[0].id_master,
+      user_name: user[0].user_name,
+      emp_position: user[0].emp_position,
+      first_name: user[0].emp_firstname,
+      last_name: user[0].emp_lastname,
+      is_active: user[0].is_active,
+      role: user[0].emp_role,
+    };
 
-        res.json(result);
-    } catch (err) {
-        console.error("Error during login GET:", err);
-        
-      }
-  });
+    res.json(result);
+  } catch (err) {
+    console.error("Error during login GET:", err);
+
+  }
+});
 
 
-  
+
 
 router.get('/users', async function (req, res, next) {
   const result = await knex.select('*').from('users_master');
@@ -264,10 +263,10 @@ router.get('/users', async function (req, res, next) {
   console.log(result);
 });
 
-router.get('/useredit', async (req,res,next)=> {
-  try{
+router.get('/useredit', async (req, res, next) => {
+  try {
     const getUser = await Users.findAll({
-      where:{
+      where: {
         id_master: req.query.id
       }
     })
@@ -275,11 +274,11 @@ router.get('/useredit', async (req,res,next)=> {
     res.json(getUser[0]);
 
 
-  }catch(err){
+  } catch (err) {
     console.error('Error fetching user data', err);
-    res.status(500).json({error: 'Failed to fetch request'});
+    res.status(500).json({ error: 'Failed to fetch request' });
   }
-}) 
+})
 
 router.get('/logs', async (req, res) => {
   const { start, end } = req.query;
@@ -328,32 +327,32 @@ router.delete('/delete/:id', async (req, res) => {
   }
 });
 
-router.post('/isactivechecker', async(req,res) => {
-  try{
-    const{
+router.post('/isactivechecker', async (req, res) => {
+  try {
+    const {
       id_master,
       is_active
     } = req.body
 
-    await knex('users_master').where({id_master: id_master}).update({
+    await knex('users_master').where({ id_master: id_master }).update({
       is_active: is_active
     })
-  }catch(err){
+  } catch (err) {
 
   }
 })
 
-router.post('/isactivelogout', async(req,res) => {
-  try{
-    const{
+router.post('/isactivelogout', async (req, res) => {
+  try {
+    const {
       id_master,
       is_active
     } = req.body
 
-    await knex('users_master').where({id_master: id_master}).update({
+    await knex('users_master').where({ id_master: id_master }).update({
       is_active: is_active
     })
-  }catch(err){
+  } catch (err) {
 
   }
 })
@@ -364,4 +363,4 @@ router.post('/isactivelogout', async(req,res) => {
 
 
 
-  module.exports = router;
+module.exports = router;

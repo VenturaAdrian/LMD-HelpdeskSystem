@@ -4,7 +4,6 @@
 
 .pc-container {
   position: relative;
-  top: $header-height;
   margin-left: $sidebar-width;
   min-height: calc(100vh - #{$header-height});
 
@@ -14,10 +13,11 @@
     padding-top: 30px;
   }
 
-  .page-header + .row {
+  .page-header+.row {
     padding-top: 50px;
   }
-  .page-header + .pcoded-content {
+
+  .page-header+.pcoded-content {
     padding-top: calc(30px + 55px);
   }
 }
@@ -77,7 +77,7 @@
         color: $primary;
       }
 
-      + .breadcrumb-item::before {
+      +.breadcrumb-item::before {
         position: relative;
         top: 2px;
       }
@@ -102,7 +102,7 @@
     position: relative;
   }
 
-  > .container {
+  >.container {
     z-index: 5;
     position: relative;
     margin-top: -60px;
@@ -116,7 +116,7 @@
     th {
       border: none;
 
-      + th {
+      +th {
         border-radius: 5px 5px 0 0;
         padding: 20px 0;
       }
@@ -134,17 +134,18 @@
     th {
       text-align: right;
 
-      + td,
-      + th {
+      +td,
+      +th {
         text-align: center;
       }
 
-      + td {
+      +td {
         border-left: 1px solid $body-bg;
       }
     }
   }
 }
+
 // ======= Burgur menu start
 
 .hamburger {
@@ -213,12 +214,14 @@
 .hamburger--arrowturn.is-active .hamburger-inner::after {
   transform: translate3d(4px, -2px, 0) rotate(-45deg) scale(0.7, 1);
 }
+
 // ======= Burgur menu End
 @media (max-width: 1024px) {
   .pc-container {
     margin-left: 0;
-    .page-header + .row,
-    .page-header + .pcoded-content,
+
+    .page-header+.row,
+    .page-header+.pcoded-content,
     .pcoded-content {
       padding-top: 30px;
     }
@@ -240,6 +243,7 @@
     }
   }
 }
+
 @include media-breakpoint-down(sm) {
   .pc-container {
     .pcoded-content {
@@ -302,32 +306,35 @@
   position: absolute;
 }
 
-.ps--active-x > .ps__rail-x,
-.ps--active-y > .ps__rail-y {
+.ps--active-x>.ps__rail-x,
+.ps--active-y>.ps__rail-y {
   display: block;
   background-color: transparent;
 }
 
-.ps:hover > {
+.ps:hover> {
+
   .ps__rail-x,
   .ps__rail-y {
     opacity: 0.6;
   }
 }
 
-.ps--focus > {
+.ps--focus> {
+
   .ps__rail-x,
   .ps__rail-y {
     opacity: 0.6;
   }
 }
 
-.ps--scrolling-x > .ps__rail-x,
-.ps--scrolling-y > .ps__rail-y {
+.ps--scrolling-x>.ps__rail-x,
+.ps--scrolling-y>.ps__rail-y {
   opacity: 0.6;
 }
 
 .ps {
+
   .ps__rail-x.ps--clicking,
   .ps__rail-x:focus,
   .ps__rail-x:hover,
@@ -362,28 +369,33 @@
 }
 
 .ps__rail-x {
+
   &.ps--clicking .ps__thumb-x,
-  &:focus > .ps__thumb-x,
-  &:hover > .ps__thumb-x {
+  &:focus>.ps__thumb-x,
+  &:hover>.ps__thumb-x {
     background-color: #999;
     height: 11px;
   }
 }
 
 .ps__rail-y {
+
   &.ps--clicking .ps__thumb-y,
-  &:focus > .ps__thumb-y,
-  &:hover > .ps__thumb-y {
+  &:focus>.ps__thumb-y,
+  &:hover>.ps__thumb-y {
     background-color: #999;
     width: 11px;
   }
 }
+
 @supports (-ms-overflow-style: none) {
   .ps {
     overflow: auto !important;
   }
 }
-@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+
+@media screen and (-ms-high-contrast: active),
+(-ms-high-contrast: none) {
   .ps {
     overflow: auto !important;
   }
@@ -411,8 +423,9 @@
 }
 
 .ps__rail-y.ps--clicking .ps__thumb-y,
-.ps__rail-y:focus > .ps__thumb-y,
-.ps__rail-y:hover > .ps__thumb-y {
+.ps__rail-y:focus>.ps__thumb-y,
+.ps__rail-y:hover>.ps__thumb-y {
   background: darken($body-bg, 20%);
 }
+
 // Common layout css end

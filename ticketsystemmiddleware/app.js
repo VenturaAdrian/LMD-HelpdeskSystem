@@ -15,11 +15,12 @@ var ticketRouter = require('./routes/ticket');//predefined
 // var requestRouter = require('./routes/request');
 
 
+
 const session = require('express-session');
 var MemoryStore = require('memorystore')(session);
 
 var app = express();
-
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -30,24 +31,25 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
 app.use(session({
-  cookie: {maxAge: 3600000},
-  store: new MemoryStore({
-    checkPeriod:3600000
-  }),
-  resave:false,
-  secret: 'LCMC_COR',
-  saveUninitialized: false,
+	cookie: { maxAge: 3600000 },
+	store: new MemoryStore({
+		checkPeriod: 3600000
+	}),
+	resave: false,
+	secret: 'LCMC_COR',
+	saveUninitialized: false,
 }))
 
-var whitelist =[
-  'http://localhost:3007',
-  'http://127.0.0.1:3007/',
-  'http://localhost',
-  'https://192.168.44.26:443',
-  'https://192.168.44.26:444',
-  'http://192.168.44.26',
-  'http://192.168.44.26:3007'
+var whitelist = [
+	'http://localhost:3007',
+	'http://127.0.0.1:3007/',
+	'http://localhost',
+	'https://192.168.44.26:443',
+	'https://192.168.44.26:444',
+	'http://192.168.44.26',
+	'http://192.168.44.26:3007'
 ];
 
 var corsOptions = {
@@ -87,7 +89,7 @@ app.use('/api/ticket', ticketRouter);
 
 
 
-app.set('trust proxy',true);
+app.set('trust proxy', true);
 
 
 // // catch 404 and forward to error handler

@@ -111,6 +111,15 @@ const menuItems = {
           target: true
         },
         {
+          id: 'my-ticket',
+          title: 'My Ticket',
+          type: 'item',
+          icon: 'material-icons-two-tone',
+          iconname: 'confirmation_number',
+          url: '/my-ticket',
+          target: true
+        },
+        {
           id: 'open-ticket',
           title: 'Open Tickets',
           type: 'item',

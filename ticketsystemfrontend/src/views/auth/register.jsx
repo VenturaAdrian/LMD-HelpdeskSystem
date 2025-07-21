@@ -28,6 +28,7 @@ export default function SignUp1() {
   const [position, setPosition] = useState('');
   const [error, setError] = useState('');
   const [successful, setSuccessful] = useState('');
+  const [currentUser, setCurrentUser] = useState('');
 
   const firstNameRef = useRef();
   const lastNameRef = useRef();
@@ -49,21 +50,26 @@ export default function SignUp1() {
     }
   }, [error, successful]);
 
+  useEffect(() => {
+    const empInfo = JSON.parse(localStorage.getItem("user"));
+    setCurrentUser(empInfo?.user_name);
+  })
+
   const Register = (e) => {
     e.preventDefault();
 
-    if(
+    if (
       !firstname.trim() &&
       !lastname.trim() &&
-      !username.trim()&&
+      !username.trim() &&
       !email.trim() &&
       !password &&
       !confirmpassword &&
       !role &&
       !department &&
-      !position){
-      setError('All fields are required!') 
-      }
+      !position) {
+      setError('All fields are required!')
+    }
 
     if (!firstname.trim()) {
       setError('First Name is required!');
@@ -85,6 +91,13 @@ export default function SignUp1() {
       emailRef.current.focus();
       return;
     }
+    const lepantoEmailPattern = /^[a-zA-Z0-9._%+-]+@lepantomining\.com$/;
+    if (!lepantoEmailPattern.test(email)) {
+      setError('Email must end with @lepantomining.com');
+      emailRef.current.focus();
+      return;
+    }
+
     if (!password) {
       setError('Password is required!');
       passwordRef.current.focus();
@@ -116,6 +129,8 @@ export default function SignUp1() {
       return;
     }
 
+
+
     axios
       .post(`${config.baseApi}/authentication/register`, {
         emp_firstname: firstname,
@@ -125,13 +140,14 @@ export default function SignUp1() {
         pass_word: password,
         emp_role: role,
         emp_department: department,
-        emp_position: position
+        emp_position: position,
+        current_user: currentUser
       })
       .then((res) => {
-          setSuccessful(
+        setSuccessful(
           'Registered ' +
-            `${username.charAt(0).toUpperCase() + 
-              username.slice(1).toLowerCase()}` +' successfully!'
+          `${username.charAt(0).toUpperCase() +
+          username.slice(1).toLowerCase()}` + ' successfully!'
         );
         setFirstName('');
         setLastName('');
@@ -143,20 +159,20 @@ export default function SignUp1() {
         setDepartment('');
         setPosition('');
 
-        console.log(`User ${username} was successfully registered` )
-     
-        
+        console.log(`User ${username} was successfully registered`)
+
+
 
       })
       .catch((err) => {
-        if(err === 404){
+        if (err === 404) {
           setError('Unable to register user! Please try again.');
           console.log(`Unable to register ${username}` + err)
-        }else{
+        } else {
           setError('Unable to register user! Please try again.');
-        console.log(`Unable to register ${username}` + err)
+          console.log(`Unable to register ${username}` + err)
         }
-        
+
       });
   };
 
@@ -165,28 +181,23 @@ export default function SignUp1() {
       className="auth-wrapper d-flex align-items-center justify-content-center min-vh-100"
       style={{
         background: 'linear-gradient(to bottom, #ffe798ff, #b8860b)',
-        padding: '20px'
+        padding: '20px',
+        paddingTop: '100px'
       }}
     >
-      <Container>
+      <Container >
         <Row className="justify-content-center">
           <Col xs={12} sm={11} md={10} lg={8} xl={7}>
             <Card className="shadow-lg border-0" style={{ borderRadius: '1rem' }}>
               <Card.Body className="p-4">
                 <div className="text-center mb-4">
-                  <img
-                    src={newLogo}
-                    alt="logo"
-                    className="img-fluid mb-3"
-                    style={{ maxWidth: '120px' }}
-                  />
                   <h4 className="fw-bold">Create an Account</h4>
                 </div>
 
                 {error && (
                   <div
-                    className="position-fixed top-0 start-50 translate-middle-x mt-3"
-                    style={{ zIndex: 9999, minWidth: '300px' }}
+                    className="position-fixed start-50 l translate-middle-x"
+                    style={{ top: '100px', zIndex: 9999, minWidth: '300px' }}
                   >
                     <Alert variant="danger" onClose={() => setError('')} dismissible>
                       {error}
@@ -195,8 +206,8 @@ export default function SignUp1() {
                 )}
                 {successful && (
                   <div
-                    className="position-fixed top-0 start-50 translate-middle-x mt-3"
-                    style={{ zIndex: 9999, minWidth: '300px' }}
+                    className="position-fixed start-50 l translate-middle-x"
+                    style={{ top: '100px', zIndex: 9999, minWidth: '300px' }}
                   >
                     <Alert variant="success" onClose={() => setSuccessful('')} dismissible>
                       {successful}
@@ -253,7 +264,7 @@ export default function SignUp1() {
                   </InputGroup>
 
                   <Form.Label>Email Address</Form.Label>
-                  <InputGroup className="mb-1">
+                  <InputGroup className="mb-3">
                     <InputGroup.Text>
                       <FeatherIcon icon="mail" />
                     </InputGroup.Text>
@@ -265,9 +276,6 @@ export default function SignUp1() {
                       ref={emailRef}
                     />
                   </InputGroup>
-                  <Form.Text muted className="mb-3">
-                    Only emails ending in <strong>@lepantomining.com</strong> are accepted.
-                  </Form.Text>
 
                   <Row>
                     <Col xs={12} sm={6} className="mb-3">
@@ -303,29 +311,37 @@ export default function SignUp1() {
                   </Row>
 
                   <Form.Label>Role</Form.Label>
-                  <Form.Select
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
-                    ref={roleRef}
-                  >
-                    <option value="">Select Role</option>
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                  </Form.Select>
+                  <InputGroup className="mb-3">
+                    <InputGroup.Text>
+                      <FeatherIcon icon="users" />
+                    </InputGroup.Text>
+                    <Form.Select
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                      ref={roleRef}
+                    >
+                      <option value="">Select Role</option>
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                    </Form.Select>
+                  </InputGroup>
 
                   <Form.Label>Department</Form.Label>
                   <InputGroup className="mb-3">
                     <InputGroup.Text>
                       <FeatherIcon icon="briefcase" />
                     </InputGroup.Text>
-                    <Form.Control
-                      type="text"
-                      placeholder="Department"
+                    <Form.Select
                       value={department}
                       onChange={(e) => setDepartment(e.target.value)}
                       ref={departmentRef}
-                    />
+                    >
+                      <option value="">Select Department</option>
+                      <option value="MISD">MISD</option>
+                      <option value="Others">Others</option>
+                    </Form.Select>
                   </InputGroup>
+
 
                   <Form.Label>Position</Form.Label>
                   <InputGroup className="mb-3">

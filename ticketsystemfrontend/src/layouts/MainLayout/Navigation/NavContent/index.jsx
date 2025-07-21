@@ -55,14 +55,14 @@ export default function NavContent({ navigation, activeNav }) {
     </ListGroup>
   ) : (
     <SimpleBar style={{ height: 'calc(100vh - 70px)' }}>
-      <ListGroup variant="flush" as="ul" bsPrefix=" " className="pc-navbar">createopen
+      <ListGroup variant="flush" as="ul" bsPrefix=" " className="pc-navbar">
         {navItems}
       </ListGroup>
     </SimpleBar>
   );
 
   const mHeader = (
-    <div className="m-header" style={{ display:'flex', justifyContent:'center', alignContent: 'center', padding: '12px 0' }}>
+    <div className="m-header" style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', padding: '12px 0' }}>
       <Link to="/dashboard/sales" className="b-brand">
         <img
           src={newLogo}
