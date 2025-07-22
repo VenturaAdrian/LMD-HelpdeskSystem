@@ -129,6 +129,7 @@ router.post('/register', async function (req, res, next) {
     user_name,
     pass_word,
     emp_email,
+    emp_tier,
     emp_role,
     emp_department,
     emp_position,
@@ -142,6 +143,7 @@ router.post('/register', async function (req, res, next) {
       user_name: user_name,
       pass_word: pass_word,
       emp_email: emp_email,
+      emp_tier: emp_tier,
       emp_role: emp_role,
       emp_department: emp_department,
       emp_position: emp_position,
@@ -154,6 +156,19 @@ router.post('/register', async function (req, res, next) {
   } catch (err) {
     return res.status(404).json({ msg: 'Unable to Register user!' + ` ${user_name}` })
 
+  }
+})
+
+router.get('/get-by-username', async (req, res, next) => {
+  try {
+    const getCreatedBy = await Users1.findAll({
+      where: {
+        user_name: req.query.user_name
+      }
+    })
+    res.json(getCreatedBy[0])
+  } catch (err) {
+    console.log(err)
   }
 })
 

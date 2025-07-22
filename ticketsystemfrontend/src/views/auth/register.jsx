@@ -23,6 +23,7 @@ export default function SignUp1() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmpassword, setConfirmPassword] = useState('');
+  const [tier, setTier] = useState('');
   const [role, setRole] = useState('');
   const [department, setDepartment] = useState('');
   const [position, setPosition] = useState('');
@@ -36,6 +37,7 @@ export default function SignUp1() {
   const emailRef = useRef();
   const passwordRef = useRef();
   const confirmPasswordRef = useRef();
+  const tierRef = useRef();
   const roleRef = useRef();
   const departmentRef = useRef();
   const positionRef = useRef();
@@ -65,6 +67,7 @@ export default function SignUp1() {
       !email.trim() &&
       !password &&
       !confirmpassword &&
+      !tier &&
       !role &&
       !department &&
       !position) {
@@ -113,6 +116,11 @@ export default function SignUp1() {
       confirmPasswordRef.current.focus();
       return;
     }
+    if (!tier) {
+      setError('Tier is required!');
+      tierRef.current.focus();
+      return;
+    }
     if (!role) {
       setError('Role is required!');
       roleRef.current.focus();
@@ -138,6 +146,7 @@ export default function SignUp1() {
         user_name: username,
         emp_email: email,
         pass_word: password,
+        emp_tier: tier,
         emp_role: role,
         emp_department: department,
         emp_position: position,
@@ -155,6 +164,7 @@ export default function SignUp1() {
         setEmail('');
         setPassword('');
         setConfirmPassword('');
+        setTier('')
         setRole('');
         setDepartment('');
         setPosition('');
@@ -309,6 +319,24 @@ export default function SignUp1() {
                       </InputGroup>
                     </Col>
                   </Row>
+
+                  <Form.Label>Tier</Form.Label>
+                  <InputGroup className="mb-3">
+                    <InputGroup.Text>
+                      <FeatherIcon icon="users" />
+                    </InputGroup.Text>
+                    <Form.Select
+                      value={tier}
+                      onChange={(e) => setTier(e.target.value)}
+                      ref={tierRef}
+                    >
+                      <option value="">Select Tier</option>
+                      <option value="tier1">Tier 1</option>
+                      <option value="tier2">Tier 2</option>
+                      <option value="tier3">Tier 3</option>
+                      <option value="none">None</option>
+                    </Form.Select>
+                  </InputGroup>
 
                   <Form.Label>Role</Form.Label>
                   <InputGroup className="mb-3">

@@ -3,8 +3,6 @@ import Spinner from 'react-bootstrap/Spinner';
 import MainLayout from 'layouts/MainLayout';
 import { Navigate } from 'react-router-dom';
 
-
-
 // Lazy imports
 const DashboardSales = lazy(() => import('../views/dashboard/DashSales/index'));
 const Typography = lazy(() => import('../views/ui-elements/basic/BasicTypography'));
@@ -24,6 +22,7 @@ const Announcements = lazy(() => import('views/pages/announcements'));
 const Knowledgebase = lazy(() => import('views/pages/knowledgebase'));
 const Reports = lazy(() => import('views/pages/reports'));
 const Alltickets = lazy(() => import('views/tickets/alltickets'));
+const ViewTicket = lazy(() => import('views/tickets/viewticket'));
 const Myticket = lazy(() => import('views/tickets/myticket'));
 const Profile = lazy(() => import('views/pages/profile'));
 const Register = lazy(() => import('views/auth/register'))
@@ -122,7 +121,12 @@ const MainRoutes = {
     {
       path: '/my-ticket',
       element: withSpinner(<Myticket />)
-    }
+    },
+    {
+      path: '/view-ticket',
+      element: withSpinner(<ViewTicket />)
+    },
+
 
 
   ]

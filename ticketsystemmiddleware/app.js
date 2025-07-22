@@ -20,7 +20,7 @@ const session = require('express-session');
 var MemoryStore = require('memorystore')(session);
 
 var app = express();
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');

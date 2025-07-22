@@ -28,6 +28,12 @@ var knex = require("knex")({
     },
 });
 
+var db = new Sequelize(process.env.DATABASE, process.env.USER, process.env.PASSWORD, {
+    host: process.env.SERVER,
+    dialect: "mssql",
+    port: parseInt(process.env.APP_SERVER_PORT),
+});
+
 const DIR = './uploads';
 
 const storage = multer.diskStorage({
@@ -46,6 +52,63 @@ const upload = multer({
     limits: { fileSize: 200 * 1024 * 1024 } // 200 MB
 });
 
+const { DataTypes } = Sequelize;
+
+const Tickets = db.define('ticket_master', {
+    ticket_id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true
+    },
+    ticket_subject: {
+        type: DataTypes.STRING,
+    },
+    ticket_type: {
+        type: DataTypes.STRING,
+    },
+    ticket_status: {
+        type: DataTypes.STRING,
+    },
+    ticket_urgencyLevel: {
+        type: DataTypes.STRING,
+    },
+    ticket_category: {
+        type: DataTypes.STRING,
+    },
+    ticket_SubCategory: {
+        type: DataTypes.STRING,
+    },
+    asset_number: {
+        type: DataTypes.STRING,
+    },
+    Attachments: {
+        type: DataTypes.STRING,
+    },
+    Description: {
+        type: DataTypes.STRING,
+    },
+    responded_at: {
+        type: DataTypes.STRING,
+    },
+    created_at: {
+        type: DataTypes.STRING,
+    },
+    created_by: {
+        type: DataTypes.STRING,
+    },
+    updated_at: {
+        type: DataTypes.STRING,
+    },
+    updated_by: {
+        type: DataTypes.STRING,
+    },
+
+}, {
+    freezeTableName: false,
+    timestamps: false,
+    createdAt: false,
+    updatedAt: false,
+    tableName: 'ticket_master'
+})
 
 
 router.post('/create-ticket', upload.array('Attachments'), async (req, res) => {
@@ -70,7 +133,7 @@ router.post('/create-ticket', upload.array('Attachments'), async (req, res) => {
         await knex('ticket_master').insert({
             ticket_subject,
             ticket_type,
-            ticket_status,
+            ticket_status: 'open',
             ticket_urgencyLevel,
             ticket_category,
             ticket_SubCategory,
@@ -98,6 +161,54 @@ router.get('/get-all-ticket', async (req, res) => {
     }
 })
 
+router.get('/ticket-by-id', async (req, res, next) => {
+    try {
+        const getById = await Tickets.findAll({
+            where: {
+                ticket_id: req.query.id
+            }
+        })
+        console.log(getById);
+        res.json(getById[0])
+    } catch (err) {
+        console.error('Error fetching getbyid internal:', err);
+        res.status(500).json({ error: 'Failed to fetch ticketbyid' });
+    }
+})
+
+router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
+    console.log('UPDATE TICKET BODY: ', req.body);
+    try {
+        const {
+            ticket_id,
+            ticket_subject,
+            ticket_type,
+            ticket_status,
+            ticket_urgencyLevel,
+            Description,
+        } = req.body;
+
+        let attachmentPath = null;
+        if (req.files && req.files.length > 0) {
+            attachmentPath = req.files.map(file => file.path.replace(/\\/g, '/')).join(',');
+        } else if (req.body.Attachments) {
+            attachmentPath = req.body.Attachments;
+        }
+
+        await knex('ticket_master').where('ticket_id', ticket_id).update({
+            ticket_subject,
+            ticket_type,
+            ticket_status,
+            ticket_urgencyLevel,
+            Attachments: attachmentPath
+        });
+
+        res.status(200).json({ message: 'Ticket updated successfully' });
+    } catch (err) {
+        console.error('Error updating ticket:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+})
 
 
 module.exports = router;

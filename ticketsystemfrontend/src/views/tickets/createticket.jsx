@@ -34,7 +34,7 @@ export default function CreateTicket() {
 
   useEffect(() => {
     const empInfo = JSON.parse(localStorage.getItem('user'));
-    const Fullname = empInfo.emp_FirstName + ' ' + empInfo.emp_LastName;
+    const Fullname = empInfo.user_name;
     setCurrentUser(Fullname);
   }, []);
 
@@ -213,7 +213,7 @@ export default function CreateTicket() {
                     >
                       <option value="">Select</option>
                       <option value="Low">Low</option>
-                      <option value="Normal">Normal</option>
+                      <option value="Medium">Medium</option>
                       <option value="High">High</option>
                       <option value="Critical">Critical</option>
                     </Form.Select>
