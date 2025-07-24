@@ -11,6 +11,7 @@ const fsp = require('fs/promises');
 const { type } = require('os');
 require('dotenv').config();
 const archiver = require('archiver');
+const { assign } = require('nodemailer/lib/shared');
 
 
 var knex = require("knex")({
@@ -75,6 +76,12 @@ const Tickets = db.define('ticket_master', {
         type: DataTypes.STRING,
     },
     ticket_SubCategory: {
+        type: DataTypes.STRING,
+    },
+    assigned_to: {
+        type: DataTypes.STRING,
+    },
+    assigned_group: {
         type: DataTypes.STRING,
     },
     asset_number: {
@@ -178,6 +185,7 @@ router.get('/ticket-by-id', async (req, res, next) => {
 
 router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
     console.log('UPDATE TICKET BODY: ', req.body);
+    const currentTimestamp = new Date()
     try {
         const {
             ticket_id,
@@ -186,6 +194,8 @@ router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
             ticket_status,
             ticket_urgencyLevel,
             Description,
+            ticket_category,
+            ticket_SubCategory,
         } = req.body;
 
         let attachmentPath = null;
@@ -195,12 +205,23 @@ router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
             attachmentPath = req.body.Attachments;
         }
 
+        if (ticket_status === 'open' || ticket_status === 'escalate') {
+            await knex('ticket_master').where('ticket_id', ticket_id).update({
+                assigned_to: '',
+                assigned_group: ''
+            })
+        }
+
         await knex('ticket_master').where('ticket_id', ticket_id).update({
             ticket_subject,
             ticket_type,
             ticket_status,
             ticket_urgencyLevel,
-            Attachments: attachmentPath
+            ticket_category,
+            ticket_SubCategory,
+            Attachments: attachmentPath,
+            Description,
+            updated_at: currentTimestamp
         });
 
         res.status(200).json({ message: 'Ticket updated successfully' });
@@ -208,6 +229,29 @@ router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
         console.error('Error updating ticket:', err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
+})
+
+router.post('/update-accept-ticket', async (req, res, next) => {
+    const currentTimestamp = new Date()
+
+    try {
+        const { user_id, ticket_id } = req.body
+        const empInfo = await knex('users_master').where('user_id', user_id).first();
+        console.log('EMPOINFO CONMSOLE:', empInfo)
+
+        await knex('ticket_master').where('ticket_id', ticket_id).update({
+            assigned_to: empInfo.user_name,
+            assigned_group: empInfo.emp_tier,
+            updated_at: currentTimestamp,
+            responded_at: currentTimestamp,
+            ticket_status: 'assigned'
+        })
+
+
+    } catch (err) {
+        console.log(err)
+    }
+
 })
 
 

@@ -137,14 +137,14 @@ export default function ViewTicket() {
         };
 
         return (
-            <div className="d-flex flex-column gap-2">
+            <div className="d-flex flex-column">
                 {filePaths.map((filePath, idx) => {
                     const fileName = filePath.split('\\').pop().split('/').pop();
                     const shortName = fileName.length > 25 ? fileName.slice(0, 25) + '...' : fileName;
                     const fileUrl = `${config.baseApi}/${filePath.replace(/\\/g, '/')}`;
 
                     return (
-                        <Card key={idx} className="shadow-sm border-0" style={{ backgroundColor: '#fdedd3ff' }}>
+                        <Card key={idx} className="shadow-sm border-0 mb-1" style={{ backgroundColor: '#fdedd3ff' }}>
                             <Card.Body className="d-flex align-items-center justify-content-between p-2">
                                 <div className="d-flex align-items-center">
                                     <div className="me-3">{getFileIcon(fileName)}</div>
@@ -166,7 +166,7 @@ export default function ViewTicket() {
             <Container className="bg-white p-4 rounded-3 shadow-sm">
                 <Row>
                     <Col lg={8}>
-                        <h5 className="fw-bold text-dark mb-3">Edit Ticket</h5>
+                        <h3 className="fw-bold text-dark mb-3">Ticket Details</h3>
 
                         <h6 className="text-muted fw-semibold mb-2">Dates</h6>
                         <Row>
@@ -249,7 +249,7 @@ export default function ViewTicket() {
                                 <Form.Label>Sub Category</Form.Label>
                                 <Form.Control name="ticket_SubCategory" value={formData.ticket_SubCategory || ''} disabled />
                             </Form.Group>
-                            <Form.Group as={Col} md={6} className="mb-2">
+                            <Form.Group as={Col} md={6} className="mb-3">
                                 <Form.Label>Asset Tag</Form.Label>
                                 <Form.Control name="asset_number" value={formData.asset_number || ''} disabled />
                             </Form.Group>

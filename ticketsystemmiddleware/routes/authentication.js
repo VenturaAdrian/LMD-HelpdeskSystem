@@ -54,6 +54,9 @@ const Users1 = db.define('users_master', {
   emp_role: {
     type: DataTypes.STRING
   },
+  emp_tier: {
+    type: DataTypes.STRING
+  },
   pass_word: {
     type: DataTypes.STRING
   },
@@ -65,7 +68,8 @@ const Users1 = db.define('users_master', {
   },
   is_active: {
     type: DataTypes.STRING
-  }
+  },
+
 }, {
   freezeTableName: false,
   timestamps: false,
@@ -101,7 +105,7 @@ router.get('/login', async function (req, res, next) {
       .update({ is_active: 1 });
 
     const result = {
-      user_id: user[0].id_master,
+      user_id: user[0].user_id,
       user_name: user[0].user_name,
       emp_department: user[0].emp_department,
       emp_position: user[0].emp_position,
@@ -110,6 +114,7 @@ router.get('/login', async function (req, res, next) {
       emp_LastName: user[0].emp_LastName,
       is_active: user[0].is_active,
       emp_role: user[0].emp_role,
+      emp_tier: user[0].emp_tier,
     };
 
     res.json(result);

@@ -148,28 +148,32 @@ export default function Myticket() {
         >
             <h3 style={{ fontWeight: 600, marginBottom: '5px' }}>My Tickets</h3>
             <Container style={{ padding: ' 20px' }}>
-                {allticket.length === 0 ? (
-                    <p>No tickets found for this user.</p>
-                ) : (
-                    <div style={{
-                        background: '#fff',
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
-                        padding: '20px',
-                        overflowX: 'auto'
-                    }}>
-                        <Table hover borderless responsive className="mb-0">
-                            <thead style={{ borderBottom: '2px solid #eee', fontSize: '14px', textTransform: 'uppercase', color: '#555' }}>
-                                <tr>
-                                    <th>Ticket Number </th>
-                                    <th>Subject</th>
-                                    <th>Type</th>
-                                    <th>Status</th>
-                                    <th>Urgency</th>
-                                    <th>Description</th>
-                                    <th>Action</th>
+                <div style={{
+                    background: '#fff',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+                    padding: '20px',
+                    overflowX: 'auto'
+                }}>
+                    <Table hover borderless responsive className="mb-0">
+                        <thead style={{ borderBottom: '2px solid #eee', fontSize: '14px', textTransform: 'uppercase', color: '#555' }}>
+                            <tr>
+                                <th>Ticket Number </th>
+                                <th>Subject</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Urgency</th>
+                                <th>Description</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        {allticket.length === 0 ? (
+                            <tbody style={{ fontSize: '15px', color: '#333' }}>
+                                <tr style={{ borderBottom: '1px solid #f0f0f0', transition: 'background 0.2s ease' }}>
+                                    <td colSpan={7} style={{ textAlign: 'center' }}> No Open Ticket for now.</td>
                                 </tr>
-                            </thead>
+                            </tbody>
+                        ) : (
                             <tbody style={{ fontSize: '15px', color: '#333' }}>
                                 {allticket.map((ticket, index) => (
                                     <tr key={index} style={{ borderBottom: '1px solid #f0f0f0', transition: 'background 0.2s ease' }}>
@@ -183,9 +187,10 @@ export default function Myticket() {
                                     </tr>
                                 ))}
                             </tbody>
-                        </Table>
-                    </div>
-                )}
+                        )}
+                    </Table>
+                </div>
+
             </Container>
         </Container>
     );
