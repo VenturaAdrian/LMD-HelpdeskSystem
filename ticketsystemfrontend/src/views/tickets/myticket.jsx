@@ -19,14 +19,24 @@ export default function Myticket() {
     }, []);
 
     useEffect(() => {
+        const user = JSON.parse(localStorage.getItem('user'));
         if (!userName) return;
+
+
 
         axios.get(`${config.baseApi}/ticket/get-all-ticket`)
             .then((res) => {
-                const userTickets = res.data.filter(
-                    (ticket) => ticket.created_by === userName
-                );
-                setAllTicket(userTickets);
+                if (user.emp_tier === 'none') {
+                    const userTickets = res.data.filter(
+                        (ticket) => ticket.created_by === userName
+                    );
+                    setAllTicket(userTickets);
+                } else if (user.emp_tier === 'tier1' || user.emp_tier === 'tier2' || user.emp_tier === 'tier3') {
+                    const userTickets = res.data.filter(
+                        (ticket) => ticket.assigned_to === userName
+                    );
+                    setAllTicket(userTickets);
+                }
             })
             .catch((err) => console.error("Error fetching tickets:", err));
 
@@ -64,9 +74,13 @@ export default function Myticket() {
                 style = { ...baseStyle, backgroundColor: '#ffcb5aff', color: '#404040ff' };
                 label = 'Assigned';
                 break;
-            case 'escalated':
+            case 'escalate2':
                 style = { ...baseStyle, backgroundColor: '#ff7d7dff', color: '#404040ff' };
-                label = 'Escalated';
+                label = 'Escalated to Tier II';
+                break;
+            case 'escalate3':
+                style = { ...baseStyle, backgroundColor: '#ff7d7dff', color: '#404040ff' };
+                label = 'Escalated to Tier III';
                 break;
             case 'resolved':
                 style = { ...baseStyle, backgroundColor: '#91c6ffff', color: '#404040ff' };
@@ -134,7 +148,13 @@ export default function Myticket() {
 
     const HandleView = (ticket) => {
         const params = new URLSearchParams({ id: ticket.ticket_id })
-        navigate(`/view-ticket?${params.toString()}`)
+        const user = JSON.parse(localStorage.getItem('user'));
+
+        if (user.emp_tier === 'tier1' || user.emp_tier === 'tier2' || user.emp_tier === 'tier3') {
+            navigate(`/view-hd-ticket?${params.toString()}`)
+        } else if (user.emp_tier === 'none') {
+            navigate(`/view-ticket?${params.toString()}`)
+        }
     }
 
     return (

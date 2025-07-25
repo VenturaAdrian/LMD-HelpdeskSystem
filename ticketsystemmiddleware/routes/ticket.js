@@ -254,5 +254,38 @@ router.post('/update-accept-ticket', async (req, res, next) => {
 
 })
 
+router.post('/note-post', async (req, res, next) => {
+    const currentTimestamp = new Date()
+
+    try {
+        const {
+            notes,
+            current_user,
+            ticket_id
+        } = req.body;
+        await knex('notes_master').insert({
+            note: notes,
+            created_by: current_user,
+            created_at: currentTimestamp,
+            ticket_id: ticket_id
+        })
+        res.status(200).json({ message: 'Comment added successfully' });
+    } catch (err) {
+        console.log('Internal Error: ', err)
+    }
+})
+
+router.get('/get-all-notes/:ticket_id', async (req, res, next) => {
+    try {
+        const ticket_id = req.params.ticket_id;
+        const notes = await knex('notes_master').where({ ticket_id })
+            .orderBy('created_at', 'created_by, note');
+        res.json(notes);
+        console.log(notes);
+    } catch (err) {
+        console.log('INTERNAL ERROR: ', err)
+    }
+})
+
 
 module.exports = router;

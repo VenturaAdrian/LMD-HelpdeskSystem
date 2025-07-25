@@ -1,6 +1,6 @@
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from 'react-icons/fa';
 import { useEffect, useState } from "react";
-import { Container, Row, Col, Form, Card, Button } from 'react-bootstrap';
+import { Container, Row, Col, Form, Card, Button, Modal } from 'react-bootstrap';
 import axios from 'axios';
 import config from 'config';
 
@@ -11,6 +11,48 @@ export default function ViewTicket() {
     const [createdByData, setCreatedByData] = useState({});
     const [currentUserData, setCurrentUserData] = useState({});
     const ticket_id = new URLSearchParams(window.location.search).get('id');
+
+    const [allnotes, setAllNotes] = useState([]);
+    const [notesofhduser, setnoteofhduser] = useState('')
+
+    const [showCloseReasonModal, setShowCloseReasonModal] = useState(false);
+    const [close, setClose] = useState(false);
+    const [closureReason, setClosureReason] = useState('');
+
+
+    useEffect(() => {
+        if (formData.ticket_status === 'closed') {
+            setClose(false)
+        } else {
+            setClose(true)
+        }
+    }, [formData.ticket_status])
+
+    useEffect(() => {
+        const fetchNotes = async () => {
+            try {
+                const getTicket = await axios.get(`${config.baseApi}/ticket/get-all-notes/${ticket_id}`);
+                setAllNotes(getTicket.data);
+
+                const usernames = getTicket.data.map(note => note.created_by);
+
+                const response = await axios.get(`${config.baseApi}/authentication/get-all-notes-usernames`, {
+                    params: { user_name: JSON.stringify(usernames) }
+                });
+
+                console.log('HD notes userdata: ', response.data);
+                const userMap = {}
+                response.data.forEach(user => {
+                    userMap[user.user_name] = `${user.emp_FirstName} ` + ' ' + `${user.emp_LastName}`;
+                });
+                setnoteofhduser(userMap)
+
+            } catch (err) {
+                console.log('Unable to fetch data: ', err)
+            }
+        }
+        fetchNotes();
+    }, [])
 
     useEffect(() => {
         const fetchData = async () => {
@@ -77,6 +119,36 @@ export default function ViewTicket() {
         }
     };
 
+    const HandleCheckerFields = async (e) => {
+        if (formData.ticket_status === 'closed') {
+            setShowCloseReasonModal(true);
+        } else {
+
+            await handleSave();
+        }
+    }
+
+    const handleConfirmClosure = async (e) => {
+        e.preventDefault();
+        const empInfo = JSON.parse(localStorage.getItem('user'));
+        if (!closureReason.trim()) return;
+        try {
+            await axios.post(`${config.baseApi}/ticket/note-post`, {
+                notes: closureReason,
+                current_user: empInfo.user_name,
+                ticket_id: ticket_id
+            });
+            setShowCloseReasonModal(false);
+            setClosureReason('');
+
+            await handleSave();
+
+        } catch (err) {
+            console.log(err);
+            alert('Failed to save note.')
+        }
+    }
+
     const handleSave = async () => {
         try {
             const changedFields = {};
@@ -91,6 +163,8 @@ export default function ViewTicket() {
             });
 
             console.log('Changed Fields:', changedFields);
+
+
 
             const dataToSend = new FormData();
             dataToSend.append('ticket_id', formData.ticket_id);
@@ -108,6 +182,8 @@ export default function ViewTicket() {
                 dataToSend.append('Attachments', formData.Attachments || '');
             }
             console.log(dataToSend)
+
+
             await axios.post(`${config.baseApi}/ticket/update-ticket`, dataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
@@ -117,6 +193,10 @@ export default function ViewTicket() {
             alert('Ticket updated successfully.');
             setOriginalData(formData);
             setHasChanges(false);
+            window.location.reload()
+
+
+
         } catch (err) {
             console.error("Error updating ticket:", err);
             alert('Failed to update ticket.');
@@ -166,7 +246,23 @@ export default function ViewTicket() {
             <Container className="bg-white p-4 rounded-3 shadow-sm">
                 <Row>
                     <Col lg={8}>
-                        <h3 className="fw-bold text-dark mb-3">Ticket Details</h3>
+                        <Row className="mb-3">
+                            <div className="d-flex justify-content-between align-items-center">
+                                <h3 className="fw-bold text-dark mb-0">Ticket Details</h3>
+                                <div className="d-flex gap-2">
+                                    {hasChanges && (
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
+                                            style={{ width: '200px', minHeight: '40px' }}
+                                            onClick={HandleCheckerFields}
+                                        >
+                                            Save Changes
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        </Row>
 
                         <h6 className="text-muted fw-semibold mb-2">Dates</h6>
                         <Row>
@@ -214,11 +310,11 @@ export default function ViewTicket() {
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Ticket Subject</Form.Label>
-                                <Form.Control name="ticket_subject" value={formData.ticket_subject || ''} onChange={handleChange} />
+                                <Form.Control name="ticket_subject" value={formData.ticket_subject || ''} onChange={handleChange} disabled={!close} />
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Ticket Type</Form.Label>
-                                <Form.Select name="ticket_type" value={formData.ticket_type || ''} onChange={handleChange} required>
+                                <Form.Select name="ticket_type" value={formData.ticket_type || ''} onChange={handleChange} required disabled={!close}>
                                     <option value="incident">Incident</option>
                                     <option value="request">Request</option>
                                     <option value="inquiry">Inquiry</option>
@@ -227,14 +323,20 @@ export default function ViewTicket() {
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Status</Form.Label>
                                 <Form.Select name="ticket_status" value={formData.ticket_status || ''} onChange={handleChange} required>
-                                    <option value="open">Open</option>
-                                    <option value="closed">Closed</option>
-                                    <option value="re-Opened">Re-Opened</option>
+                                    <option value="open" hidden>Open</option>
+                                    <option value="closed">Close</option>
+                                    <option value="re-opened">Re open</option>
+
+                                    <option value="assigned" hidden>Assigned</option>
+                                    <option value="in-progress" hidden>In Progress</option>
+                                    <option value="escalate2" hidden>Escalate Tier II</option>
+                                    <option value="escalate3" hidden>Escalate Tier III</option>
+                                    <option value="resolved" hidden>Resolve</option>
                                 </Form.Select>
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Urgency</Form.Label>
-                                <Form.Select name="ticket_urgencyLevel" value={formData.ticket_urgencyLevel || ''} onChange={handleChange} required>
+                                <Form.Select name="ticket_urgencyLevel" value={formData.ticket_urgencyLevel || ''} onChange={handleChange} required disabled={!close}>
                                     <option value="low">Low</option>
                                     <option value="medium">Medium</option>
                                     <option value="high">High</option>
@@ -257,7 +359,7 @@ export default function ViewTicket() {
                             <Form.Group as={Col} md={12} className="mb-2">
                                 <Form.Label>Attachments</Form.Label>
                                 {renderAttachment()}
-                                <Form.Control type="file" multiple onChange={handleFileChange} className="mt-1" />
+                                <Form.Control type="file" multiple onChange={handleFileChange} className="mt-1" disabled={!close} />
                             </Form.Group>
                         </Row>
 
@@ -269,12 +371,9 @@ export default function ViewTicket() {
                                 name="Description"
                                 value={formData.Description || ''}
                                 onChange={handleChange}
+                                disabled={!close}
                             />
                         </Form.Group>
-
-                        {hasChanges && (
-                            <Button variant="primary" onClick={handleSave}>Save Changes</Button>
-                        )}
                     </Col>
 
                     <Col lg={4}>
@@ -282,20 +381,86 @@ export default function ViewTicket() {
                         <Card className="shadow-sm border-0">
                             <Card.Body>
                                 <Form.Group>
-                                    <Form.Label className="fw-semibold text-muted">Notes</Form.Label>
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={12}
-                                        name="notes"
-                                        placeholder="Add notes here..."
-                                        value={formData.notes || ''}
-                                        onChange={handleChange}
-                                    />
+                                    <div
+                                        style={{
+                                            maxHeight: '600px',
+                                            overflowY: 'auto',
+                                            paddingRight: '5px',
+                                        }}
+                                    >
+                                        {allnotes && allnotes.length > 0 ? (
+                                            [...allnotes]
+                                                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                                                .map((note, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="mb-3 p-3 rounded-3 shadow-sm bg-body-tertiary border border-light-subtle"
+                                                    >
+                                                        <div
+                                                            className="text-dark"
+                                                            style={{
+                                                                fontSize: '0.95rem',
+                                                                whiteSpace: 'pre-wrap',
+                                                            }}
+                                                        >
+                                                            {note.note}
+                                                        </div>
+                                                        <div className="d-flex justify-content-between align-items-center mt-2">
+                                                            <small className="text-muted fst-italic">
+                                                                {notesofhduser[note.created_by] || note.created_by || 'Unknown'}
+                                                            </small>
+                                                            <small className="text-muted">
+                                                                {note.created_at
+                                                                    ? new Date(
+                                                                        note.created_at
+                                                                    ).toLocaleString()
+                                                                    : ''}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                        ) : (
+                                            <div className="text-muted fst-italic">
+                                                No notes available.
+                                            </div>
+                                        )}
+                                    </div>
+
                                 </Form.Group>
                             </Card.Body>
                         </Card>
                     </Col>
                 </Row>
+                <Modal show={showCloseReasonModal} onHide={() => setShowCloseReasonModal(false)} centered>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Reason for Closing Ticket</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form.Group controlId="closureReason">
+                            <Form.Label>Please provide a reason:</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                value={closureReason}
+                                onChange={(e) => setClosureReason(e.target.value)}
+                                placeholder="Enter reason for closing the ticket"
+                            />
+                        </Form.Group>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setShowCloseReasonModal(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={handleConfirmClosure}
+                            disabled={closureReason.trim() === ''}
+                        >
+                            Confirm
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+
             </Container>
         </Container>
     );
