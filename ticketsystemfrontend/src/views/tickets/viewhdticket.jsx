@@ -1,6 +1,6 @@
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from 'react-icons/fa';
 import { useEffect, useState } from "react";
-import { Container, Row, Col, Form, Card, Button } from 'react-bootstrap';
+import { Container, Row, Col, Form, Card, Button, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import config from 'config';
 
@@ -21,8 +21,8 @@ export default function ViewHDTicket() {
     const [allnotes, setAllNotes] = useState([]);
     const [notesofhduser, setnoteofhduser] = useState('')
 
-
-
+    const [error, setError] = useState('');
+    const [successful, setSuccessful] = useState('');
 
     const ticket_id = new URLSearchParams(window.location.search).get('id');
 
@@ -31,6 +31,17 @@ export default function ViewHDTicket() {
         network: ['Internet Connectivity', 'Wi-Fi', 'Email/Server Access', 'Network Printer/Scanner', 'Firewall', 'Others'],
         software: ['Application Not Responding', 'Installation/Uninstallation', 'System Updates', 'Login Issue', 'Outlook', 'Security', 'Others'],
     };
+    //Alerts timeout
+    useEffect(() => {
+        if (error || successful) {
+            const timer = setTimeout(() => {
+                setError('');
+                setSuccessful('');
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [error, successful]);
+
     //buttons validation
     useEffect(() => {
         const empInfo = JSON.parse(localStorage.getItem('user'));
@@ -44,6 +55,9 @@ export default function ViewHDTicket() {
                     setShowAcceptButton(true)
                 }
             }
+            if (formData.ticket_status === 're-opened') {
+                setIsEditable(true);
+            }
             if (formData.assigned_group === 'tier2' || formData.assigned_group === 'tier3') {
                 setIsEditable(false);
             } else if (formData.ticket_status === 'in-progress' || formData.ticket_status === 'assigned') {
@@ -53,7 +67,6 @@ export default function ViewHDTicket() {
                 } else {
                     setIsEditable(true)
                 }
-
             }
 
             if (formData.ticket_status === 'escalate2' || formData.ticket_status === 'escalate3' ||
@@ -159,9 +172,6 @@ export default function ViewHDTicket() {
                     userMap[user.user_name] = `${user.emp_FirstName} ` + ' ' + `${user.emp_LastName}`;
                 });
                 setnoteofhduser(userMap)
-
-
-
             } catch (err) {
                 console.log('UNABLE TO FETCH ALL NOTES: ', err)
             }
@@ -235,8 +245,10 @@ export default function ViewHDTicket() {
         try {
             axios.post(`${config.baseApi}/ticket/update-accept-ticket`, {
                 user_id: empInfo.user_id,
-                ticket_id: ticket_id
+                ticket_id: ticket_id,
+                ticket_status: formData.ticket_status
             });
+            console.log(formData.ticket_status)
             window.location.reload();
             setIsEditable(true)
             setShowAcceptButton(false)
@@ -321,14 +333,14 @@ export default function ViewHDTicket() {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            alert('Ticket updated successfully.');
+            setSuccessful('Ticket updated successfully.');
             setOriginalData(formData);
             setHasChanges(false);
 
             window.location.reload();
         } catch (err) {
             console.error("Error updating ticket:", err);
-            alert('Failed to update ticket.');
+            setError('Failed to update ticket. Please try again later.');
         }
     };
 
@@ -379,6 +391,27 @@ export default function ViewHDTicket() {
                 minHeight: '100vh',
             }}
         >
+            {successful && (
+                <div
+                    className="position-fixed start-50 l translate-middle-x"
+                    style={{ top: '100px', zIndex: 9999, minWidth: '300px' }}
+                >
+                    <Alert variant="success" onClose={() => setSuccessful('')} dismissible>
+                        {successful}
+                    </Alert>
+                </div>
+            )}
+            {error && (
+                <div
+                    className="position-fixed start-50 l translate-middle-x"
+                    style={{ top: '100px', zIndex: 9999, minWidth: '300px' }}
+                >
+                    <Alert variant="danger" onClose={() => setError('')} dismissible>
+                        {error}
+                    </Alert>
+                </div>
+            )}
+
             <Container className="bg-white p-4 rounded-3 shadow-sm">
                 <Row>
                     <Col lg={8}>
@@ -559,14 +592,14 @@ export default function ViewHDTicket() {
                                     required
                                     disabled={!isEditable}
                                 >
-                                    <option value="open">Open</option>
-                                    <option value="assigned">Assigned</option>
+                                    <option value="open" hidden>Open</option>
+                                    <option value="assigned" hidden>Assigned</option>
                                     <option value="in-progress">In Progress</option>
                                     <option value="escalate2">Escalate Tier II</option>
                                     <option value="escalate3">Escalate Tier III</option>
                                     <option value="resolved">Resolve</option>
                                     <option value="closed">Close</option>
-                                    <option value="re-Opened">Re Open</option>
+                                    <option value="re-opened" hidden>Re Open</option>
                                 </Form.Select>
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">

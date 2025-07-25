@@ -2,19 +2,41 @@ ALERTS LOG IN & REGISTER
 
 import {Alert } from 'react-bootstrap'
 
-const [error, setError] = useState('');
+  const [error, setError] = useState('');
+  const [successful, setSuccessful] = useState('');
+
 
 {/* ALERT BAR */}
-    {loginError && (
-    <div 
-        className="position-fixed top-0 start-50 translate-middle-x mt-3"
-        style={{ zIndex: 9999, minWidth: '300px' }}
-    >
-    <Alert variant="danger" onClose={() => setLoginError('')} dismissible>
-        {loginError}
-    </Alert>
-    </div>
-    )}
+{error && (
+                  <div
+                    className="position-fixed start-50 l translate-middle-x"
+                    style={{ top: '100px', zIndex: 9999, minWidth: '300px' }}
+                  >
+                    <Alert variant="danger" onClose={() => setError('')} dismissible>
+                      {error}
+                    </Alert>
+                  </div>
+                )}
+                {successful && (
+                  <div
+                    className="position-fixed start-50 l translate-middle-x"
+                    style={{ top: '100px', zIndex: 9999, minWidth: '300px' }}
+                  >
+                    <Alert variant="success" onClose={() => setSuccessful('')} dismissible>
+                      {successful}
+                    </Alert>
+                  </div>
+                )}
+
+    useEffect(() => {
+    if (error || successful) {
+      const timer = setTimeout(() => {
+        setError('');
+        setSuccessful('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, successful]);
 
 -------------================------------------=============----------=========-------------
 

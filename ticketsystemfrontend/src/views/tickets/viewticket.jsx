@@ -1,6 +1,6 @@
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from 'react-icons/fa';
 import { useEffect, useState } from "react";
-import { Container, Row, Col, Form, Card, Button, Modal } from 'react-bootstrap';
+import { Container, Row, Col, Form, Card, Button, Modal, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import config from 'config';
 
@@ -19,7 +19,21 @@ export default function ViewTicket() {
     const [close, setClose] = useState(false);
     const [closureReason, setClosureReason] = useState('');
 
+    const [error, setError] = useState('');
+    const [successful, setSuccessful] = useState('');
 
+    //Alert timeout effect
+    useEffect(() => {
+        if (error || successful) {
+            const timer = setTimeout(() => {
+                setError('');
+                setSuccessful('');
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [error, successful]);
+
+    // Check if ticket status is closed
     useEffect(() => {
         if (formData.ticket_status === 'closed') {
             setClose(false)
@@ -28,6 +42,7 @@ export default function ViewTicket() {
         }
     }, [formData.ticket_status])
 
+    // Fetch all notes for the ticket
     useEffect(() => {
         const fetchNotes = async () => {
             try {
@@ -54,6 +69,7 @@ export default function ViewTicket() {
         fetchNotes();
     }, [])
 
+    // Fetch ticket data by ID
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -70,11 +86,13 @@ export default function ViewTicket() {
         fetchData();
     }, [ticket_id]);
 
+    // Fetch current user data from local storage
     useEffect(() => {
         const empInfo = JSON.parse(localStorage.getItem('user'));
         setCurrentUserData(empInfo);
     }, []);
 
+    // Fetch created by user data
     useEffect(() => {
         if (formData.created_by) {
             const fetchCreatedby = async () => {
@@ -140,12 +158,16 @@ export default function ViewTicket() {
             });
             setShowCloseReasonModal(false);
             setClosureReason('');
+            setClose(false);
 
             await handleSave();
-
+            setSuccessful('Ticket closed successfully.');
         } catch (err) {
             console.log(err);
-            alert('Failed to save note.')
+            setError('Failed to close ticket. Please try again.');
+            setShowCloseReasonModal(false);
+            setClosureReason('');
+
         }
     }
 
@@ -190,7 +212,7 @@ export default function ViewTicket() {
                 }
             });
 
-            alert('Ticket updated successfully.');
+            setSuccessful('Ticket updated successfully.');
             setOriginalData(formData);
             setHasChanges(false);
             window.location.reload()
@@ -199,7 +221,7 @@ export default function ViewTicket() {
 
         } catch (err) {
             console.error("Error updating ticket:", err);
-            alert('Failed to update ticket.');
+            setError('Failed to update ticket.');
         }
     };
 
@@ -243,6 +265,27 @@ export default function ViewTicket() {
 
     return (
         <Container fluid className="pt-100 pb-4" style={{ background: 'linear-gradient(to bottom, #ffe798, #b8860b)', minHeight: '100vh' }}>
+            {/* ALERT BAR */}
+            {error && (
+                <div
+                    className="position-fixed start-50 l translate-middle-x"
+                    style={{ top: '100px', zIndex: 9999, minWidth: '300px' }}
+                >
+                    <Alert variant="danger" onClose={() => setError('')} dismissible>
+                        {error}
+                    </Alert>
+                </div>
+            )}
+            {successful && (
+                <div
+                    className="position-fixed start-50 l translate-middle-x"
+                    style={{ top: '100px', zIndex: 9999, minWidth: '300px' }}
+                >
+                    <Alert variant="success" onClose={() => setSuccessful('')} dismissible>
+                        {successful}
+                    </Alert>
+                </div>
+            )}
             <Container className="bg-white p-4 rounded-3 shadow-sm">
                 <Row>
                     <Col lg={8}>

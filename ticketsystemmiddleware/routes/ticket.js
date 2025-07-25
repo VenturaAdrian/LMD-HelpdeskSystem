@@ -235,21 +235,35 @@ router.post('/update-accept-ticket', async (req, res, next) => {
     const currentTimestamp = new Date()
 
     try {
-        const { user_id, ticket_id } = req.body
+        const { user_id, ticket_id, ticket_status } = req.body
         const empInfo = await knex('users_master').where('user_id', user_id).first();
         console.log('EMPOINFO CONMSOLE:', empInfo)
 
-        await knex('ticket_master').where('ticket_id', ticket_id).update({
-            assigned_to: empInfo.user_name,
-            assigned_group: empInfo.emp_tier,
-            updated_at: currentTimestamp,
-            responded_at: currentTimestamp,
-            ticket_status: 'assigned'
-        })
+        if (ticket_status === 'closed') {
+            console.log('CLOSED TICKET');
+            const closed = await knex('ticket_master').where('ticket_id', ticket_id).update({
+                assigned_to: empInfo.user_name,
+                assigned_group: empInfo.emp_tier,
+                updated_at: currentTimestamp,
+                responded_at: currentTimestamp,
+                ticket_status: 're-opened'
+            })
+            console.log('Closed: ', closed)
+        } else {
+            const notclosed = await knex('ticket_master').where('ticket_id', ticket_id).update({
+                assigned_to: empInfo.user_name,
+                assigned_group: empInfo.emp_tier,
+                updated_at: currentTimestamp,
+                responded_at: currentTimestamp,
+                ticket_status: 'assigned'
+            })
+            console.log('NOT CLOSED: ', notclosed)
+        }
+
 
 
     } catch (err) {
-        console.log(err)
+        console.log('Update Accept console: ', err)
     }
 
 })

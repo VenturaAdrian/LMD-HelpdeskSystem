@@ -173,7 +173,7 @@ router.get('/get-by-username', async (req, res, next) => {
     })
     res.json(getCreatedBy[0])
   } catch (err) {
-    console.log(err)
+    console.log('GET BY USERNAME CONOSOLE: ', err)
   }
 })
 
