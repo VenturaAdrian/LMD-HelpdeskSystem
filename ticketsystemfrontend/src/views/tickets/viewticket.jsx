@@ -22,6 +22,12 @@ export default function ViewTicket() {
     const [error, setError] = useState('');
     const [successful, setSuccessful] = useState('');
 
+    const subCategoryOptions = {
+        hardware: ['Computer', 'Laptop', 'Monitor', 'Printer/Scanner', 'Peripherals', 'Fax', 'Others'],
+        network: ['Internet Connectivity', 'Wi-Fi', 'Email/Server Access', 'Network Printer/Scanner', 'Firewall', 'Others'],
+        software: ['Application Not Responding', 'Installation/Uninstallation', 'System Updates', 'Login Issue', 'Outlook', 'Security', 'Others'],
+    };
+
     //Alert timeout effect
     useEffect(() => {
         if (error || successful) {
@@ -113,7 +119,7 @@ export default function ViewTicket() {
         const { name, value } = e.target;
         setFormData(prev => {
             const updatedForm = { ...prev, [name]: value };
-            const fieldsToCheck = ['ticket_subject', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'Description', 'Attachments'];
+            const fieldsToCheck = ['ticket_subject', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory', 'Description', 'Attachments'];
             const changed = fieldsToCheck.some(field => updatedForm[field] !== originalData[field]);
             setHasChanges(changed);
             return updatedForm;
@@ -131,7 +137,7 @@ export default function ViewTicket() {
             };
             setFormData(updatedForm);
 
-            const fieldsToCheck = ['ticket_subject', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'Description', 'Attachments'];
+            const fieldsToCheck = ['ticket_subject', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory', 'Description', 'Attachments'];
             const changed = fieldsToCheck.some(field => updatedForm[field] !== originalData[field]);
             setHasChanges(changed);
         }
@@ -170,31 +176,34 @@ export default function ViewTicket() {
 
         }
     }
-
+    //Save updated fields
     const handleSave = async () => {
         try {
-            const changedFields = {};
-            const fieldsToCheck = ['ticket_subject', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'Description', 'Attachments'];
+            //check any changes to save logs
+            const changedFields = [];
+            const fieldsToCheck = ['ticket_subject', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory', 'Description', 'Attachments'];
             fieldsToCheck.forEach(field => {
-                if (formData[field] !== originalData[field]) {
-                    changedFields[field] = {
-                        from: originalData[field],
-                        to: formData[field]
-                    };
+                const original = originalData[field];
+                const current = formData[field];
+                if ((original ?? '') !== (current ?? '')) {
+                    changedFields.push(` ${currentUserData.user_name} Changed '${field}' from '${original}' to '${current}'`)
                 }
             });
-
             console.log('Changed Fields:', changedFields);
+            const changesMade = changedFields.length > 0 ? changedFields.join('; ') : '';
 
-
-
+            console.log(changesMade)
             const dataToSend = new FormData();
             dataToSend.append('ticket_id', formData.ticket_id);
             dataToSend.append('ticket_subject', formData.ticket_subject);
             dataToSend.append('ticket_type', formData.ticket_type);
             dataToSend.append('ticket_status', formData.ticket_status);
+            dataToSend.append('ticket_category', formData.ticket_category);
+            dataToSend.append('ticket_SubCategory', formData.ticket_SubCategory);
             dataToSend.append('ticket_urgencyLevel', formData.ticket_urgencyLevel);
             dataToSend.append('Description', formData.Description);
+            dataToSend.append('changes_made', changesMade);
+            dataToSend.append('updated_by', currentUserData.user_name);
 
             if (formData.attachmentFiles && formData.attachmentFiles.length > 0) {
                 formData.attachmentFiles.forEach(file => {
@@ -204,7 +213,14 @@ export default function ViewTicket() {
                 dataToSend.append('Attachments', formData.Attachments || '');
             }
             console.log(dataToSend)
-
+            //save note if user re-opened the ticket
+            if (formData.ticket_status === 're-opened') {
+                await axios.post(`${config.baseApi}/ticket/note-post`, {
+                    notes: `${currentUserData.user_name} re opened the ticket.`,
+                    current_user: currentUserData.user_name,
+                    ticket_id: ticket_id
+                });
+            }
 
             await axios.post(`${config.baseApi}/ticket/update-ticket`, dataToSend, {
                 headers: {
@@ -224,7 +240,7 @@ export default function ViewTicket() {
             setError('Failed to update ticket.');
         }
     };
-
+    //Display the files uploaded
     const renderAttachment = () => {
         if (!formData.Attachments) return <div className="text-muted fst-italic">No attachments</div>;
 
@@ -264,7 +280,7 @@ export default function ViewTicket() {
     };
 
     return (
-        <Container fluid className="pt-100 pb-4" style={{ background: 'linear-gradient(to bottom, #ffe798, #b8860b)', minHeight: '100vh' }}>
+        <Container fluid className="pt-100 pb-4" style={{ background: 'linear-gradient(to bottom, #ffe798, #b8860b)', minHeight: '100vh', paddingTop: '50px' }}>
             {/* ALERT BAR */}
             {error && (
                 <div
@@ -312,7 +328,7 @@ export default function ViewTicket() {
                             {['created_at', 'updated_at', 'responded_at', 'resolved_at'].map((field, index) => (
                                 <Form.Group as={Col} md={6} className="mb-2" key={index}>
                                     <Form.Label>{field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</Form.Label>
-                                    <Form.Control name={field} value={formData[field] || '-'} disabled />
+                                    <Form.Control name={field} value={formData[field] ? new Date(formData[field]).toLocaleString() : '-'} disabled />
                                 </Form.Group>
                             ))}
                         </Row>
@@ -388,11 +404,35 @@ export default function ViewTicket() {
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Category</Form.Label>
-                                <Form.Control name="ticket_category" value={formData.ticket_category || ''} disabled />
+                                <Form.Select
+                                    name="ticket_category"
+                                    value={formData.ticket_category || ''}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={!close}
+                                >
+                                    <option value="hardware">Hardware</option>
+                                    <option value="network">Network</option>
+                                    <option value="software">Software</option>
+                                </Form.Select>
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Sub Category</Form.Label>
-                                <Form.Control name="ticket_SubCategory" value={formData.ticket_SubCategory || ''} disabled />
+                                <Form.Select
+                                    name="ticket_SubCategory"
+                                    value={formData.ticket_SubCategory || ''}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={!close}
+                                >
+                                    {subCategoryOptions[formData.ticket_category]?.map(
+                                        (subcat, idx) => (
+                                            <option key={idx} value={subcat}>
+                                                {subcat}
+                                            </option>
+                                        )
+                                    )}
+                                </Form.Select>
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-3">
                                 <Form.Label>Asset Tag</Form.Label>

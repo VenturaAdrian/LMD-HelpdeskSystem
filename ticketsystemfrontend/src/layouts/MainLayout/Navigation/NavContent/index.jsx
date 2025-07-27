@@ -22,26 +22,6 @@ export default function NavContent({ navigation, activeNav }) {
   const configContext = useContext(ConfigContext);
   const { collapseLayout } = configContext.state;
 
-  const [logoWidth, setLogoWidth] = useState('140px');
-
-  useEffect(() => {
-    const updateLogoSize = () => {
-      const width = window.innerWidth;
-      if (width <= 480) {
-        setLogoWidth('80px');
-      } else if (width <= 768) {
-        setLogoWidth('100px');
-      } else {
-        setLogoWidth('140px');
-      }
-    };
-
-    updateLogoSize(); // Run on mount
-    window.addEventListener('resize', updateLogoSize);
-
-    return () => window.removeEventListener('resize', updateLogoSize);
-  }, []);
-
   const navItems = navigation.map((item) => {
     if (item.type === 'group') {
       return <NavGroup group={item} key={`nav-group-${item.id}`} />;
@@ -67,7 +47,7 @@ export default function NavContent({ navigation, activeNav }) {
         <img
           src={newLogo}
           alt="logo"
-          style={{ width: logoWidth, height: 'auto' }}
+          style={{ width: '150px', height: 'auto' }}
         />
       </Link>
     </div>

@@ -155,6 +155,7 @@ export default function Openticket() {
             style={{
                 background: 'linear-gradient(to bottom, #ffe798ff, #b8860b)',
                 minHeight: '100vh',
+                paddingTop: '100px',
             }}
         >
             <h3 style={{ fontWeight: 600, marginBottom: '5px' }}>Open Tickets</h3>

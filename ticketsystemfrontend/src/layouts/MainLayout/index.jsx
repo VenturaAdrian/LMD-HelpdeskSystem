@@ -25,9 +25,9 @@ export default function MainLayout() {
     }
   }, [dispatch, windowSize]);
 
-  if (windowSize.width <= 992) {
-    bodyElement.classList.add('minimenu'); // Force minimenu on mobile
-  }
+  // if (windowSize.width <= 992) {
+  //   bodyElement.classList.add('minimenu'); // Force minimenu on mobile
+  // }
 
   if (windowSize.width > 992 && collapseLayout) {
     bodyElement.classList.add('minimenu');
@@ -39,15 +39,9 @@ export default function MainLayout() {
 
   let mainlayout = (
     <>
-      {windowSize.width <= 992 ? (
-        <MobileHeader />
-      ) : (
-        <>
-          <NavBar />
-          <Navigation />
-        </>
-      )}
-
+      <MobileHeader />
+      <NavBar />
+      <Navigation />
       <div className={containerClass.join(' ')}>
         <Suspense fallback={<Loader />}>
           <Outlet />

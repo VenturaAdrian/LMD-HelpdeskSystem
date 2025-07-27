@@ -90,6 +90,9 @@ export default function ViewHDTicket() {
                     setShowAcceptButton(true)
                 }
             }
+            if (formData.ticket_status === 're-opened') {
+                setIsEditable(true);
+            }
             if (formData.assigned_group === 'escalate3') {
                 setIsEditable(false);
             } else if (formData.ticket_status === 'in-progress' || formData.ticket_status === 'assigned') {
@@ -124,6 +127,9 @@ export default function ViewHDTicket() {
                 } else {
                     setShowAcceptButton(true)
                 }
+            }
+            if (formData.ticket_status === 're-opened') {
+                setIsEditable(true);
             }
             if (formData.ticket_status === 'in-progress' || formData.ticket_status === 'assigned') {
                 if (formData.assigned_to !== empInfo.user_name) {
@@ -263,10 +269,6 @@ export default function ViewHDTicket() {
     const handleSubmitNote = async (e) => {
         e.preventDefault();
         const empInfo = JSON.parse(localStorage.getItem('user'));
-
-
-
-
         try {
             if (notes === template) {
                 setNoteAlert(true)
@@ -290,25 +292,29 @@ export default function ViewHDTicket() {
         const { name, value } = e.target;
         setFormData(prev => {
             const updatedForm = { ...prev, [name]: value };
-            const fieldsToCheck = ['ticket_subject', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory', 'notes'];
+            const fieldsToCheck = ['ticket_subject', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory'];
             const changed = fieldsToCheck.some(field => updatedForm[field] !== originalData[field]);
             setHasChanges(changed);
+
             return updatedForm;
         });
     };
 
     const handleSave = async () => {
         try {
-            const changedFields = {};
-            const fieldsToCheck = ['ticket_subject', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory'];
+            //Check changes
+            const empInfo = JSON.parse(localStorage.getItem('user'));
+            const changedFields = [];
+            const fieldsToCheck = ['ticket_subject', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory', 'Description', 'Attachments'];
             fieldsToCheck.forEach(field => {
-                if (formData[field] !== originalData[field]) {
-                    changedFields[field] = {
-                        from: originalData[field],
-                        to: formData[field]
-                    };
+                const original = originalData[field];
+                const current = formData[field];
+                if ((original ?? '') !== (current ?? '')) {
+                    changedFields.push(` ${empInfo.user_name} Changed '${field}' from '${original}' to '${current}'`)
                 }
             });
+            console.log('Changed Fields:', changedFields);
+            const changesMade = changedFields.length > 0 ? changedFields.join('; ') : '';
 
             const dataToSend = new FormData();
             dataToSend.append('ticket_id', formData.ticket_id);
@@ -319,7 +325,8 @@ export default function ViewHDTicket() {
             dataToSend.append('ticket_SubCategory', formData.ticket_SubCategory);
             dataToSend.append('ticket_urgencyLevel', formData.ticket_urgencyLevel);
             dataToSend.append('Description', formData.Description);
-            dataToSend.append('notes', formData.notes || '');
+            dataToSend.append('updated_by', empInfo.user_name)
+            dataToSend.append('changes_made', changesMade);
 
             if (formData.attachmentFiles && formData.attachmentFiles.length > 0) {
                 formData.attachmentFiles.forEach(file => {
@@ -389,6 +396,7 @@ export default function ViewHDTicket() {
             style={{
                 background: 'linear-gradient(to bottom, #ffe798, #b8860b)',
                 minHeight: '100vh',
+                paddingTop: '50px',
             }}
         >
             {successful && (

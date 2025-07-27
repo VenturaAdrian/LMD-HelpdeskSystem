@@ -164,6 +164,7 @@ export default function Myticket() {
             style={{
                 background: 'linear-gradient(to bottom, #ffe798ff, #b8860b)',
                 minHeight: '100vh',
+                paddingTop: '100px',
             }}
         >
             <h3 style={{ fontWeight: 600, marginBottom: '5px' }}>My Tickets</h3>

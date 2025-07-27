@@ -21,6 +21,8 @@ export default function CreateTicket() {
   });
 
   const [currentUser, setCurrentUser] = useState('');
+  const [fullname, setFullName] = useState('');
+  const desc = 'Issue: \nWhen did it start: \nHave you tried any troubleshooting steps: \nAdditional notes: ';
 
   useEffect(() => {
     if (error || success) {
@@ -36,7 +38,14 @@ export default function CreateTicket() {
     const empInfo = JSON.parse(localStorage.getItem('user'));
     const Fullname = empInfo.user_name;
     setCurrentUser(Fullname);
+
+    const first = empInfo.emp_FirstName.charAt(0).toUpperCase() + empInfo.emp_FirstName.slice(1).toLowerCase();
+    const last = empInfo.emp_LastName.charAt(0).toUpperCase() + empInfo.emp_LastName.slice(1).toLowerCase();
+    setFullName(first + ' ' + last);
+
   }, []);
+
+
 
   const subCategoryOptions = {
     hardware: ['Computer', 'Laptop', 'Monitor', 'Printer/Scanner', 'Peripherals', 'Fax', 'Others'],
@@ -60,7 +69,7 @@ export default function CreateTicket() {
         formData.Description.trim() === ''
       ) {
         updatedFormData.Description =
-          'Issue:\nWhen did it start?:\nHave you tried any troubleshooting steps?:\nAdditional notes:';
+          'Issue: \nWhen did it start: \nHave you tried any troubleshooting steps: \nAdditional notes: ';
       }
 
       setFormData(updatedFormData);
@@ -92,6 +101,8 @@ export default function CreateTicket() {
     if (!formData.ticket_category) errors.ticket_category = 'Category is required';
     if (!formData.ticket_SubCategory) errors.ticket_SubCategory = 'Subcategory is required';
     if (!formData.Description.trim()) errors.Description = 'Description is required';
+    if (formData.Description.trim() === desc.trim()) errors.Description = 'Description is required';
+
 
     setValidationErrors(errors);
 
@@ -123,7 +134,7 @@ export default function CreateTicket() {
           'Content-Type': 'multipart/form-data'
         }
       });
-
+      console.log('Ticket was created', response)
       setSuccess('Submitted ticket successfully!');
       setFormData({
         ticket_subject: '',
@@ -133,11 +144,12 @@ export default function CreateTicket() {
         ticket_category: '',
         ticket_SubCategory: '',
         asset_number: '',
-        Attachments: [],
+        Attachments: '',
         Description: '',
         created_by: '',
       });
       setValidationErrors({});
+      window.location.reload();
     } catch (error) {
       setError('Error submitting your ticket. Please try again');
       console.error('Error submitting ticket:', error);
@@ -145,7 +157,7 @@ export default function CreateTicket() {
   };
 
   return (
-    <Container fluid className="pt-100" style={{ background: 'linear-gradient(to bottom, #ffe798ff, #b8860b)', minHeight: '100vh' }}>
+    <Container fluid className="pt-100" style={{ background: 'linear-gradient(to bottom, #ffe798ff, #b8860b)', minHeight: '100vh', paddingTop: '100px' }}>
       {error && (
         <div className="position-fixed start-50 translate-middle-x" style={{ top: '100px', zIndex: 9999, minWidth: '300px' }}>
           <Alert variant="danger" onClose={() => setError('')} dismissible>{error}</Alert>
@@ -302,7 +314,7 @@ export default function CreateTicket() {
                 <Form.Control
                   type="text"
                   name="created_by"
-                  value={currentUser}
+                  value={fullname}
                   disabled
                 />
               </Form.Group>

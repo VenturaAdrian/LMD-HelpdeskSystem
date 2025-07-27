@@ -108,7 +108,12 @@ const Tickets = db.define('ticket_master', {
     updated_by: {
         type: DataTypes.STRING,
     },
-
+    resolved_at: {
+        type: DataTypes.STRING,
+    },
+    resolved_by: {
+        type: DataTypes.STRING,
+    },
 }, {
     freezeTableName: false,
     timestamps: false,
@@ -119,6 +124,7 @@ const Tickets = db.define('ticket_master', {
 
 
 router.post('/create-ticket', upload.array('Attachments'), async (req, res) => {
+    const currentTimestamp = new Date();
     try {
         const {
             ticket_subject,
@@ -137,7 +143,7 @@ router.post('/create-ticket', upload.array('Attachments'), async (req, res) => {
             attachmentPath = req.files.map(file => file.path).join(';'); // Save multiple paths separated by ;
         }
 
-        await knex('ticket_master').insert({
+        const [createTicket] = await knex('ticket_master').insert({
             ticket_subject,
             ticket_type,
             ticket_status: 'open',
@@ -147,8 +153,25 @@ router.post('/create-ticket', upload.array('Attachments'), async (req, res) => {
             asset_number,
             Description,
             created_by,
+            created_at: currentTimestamp,
             Attachments: attachmentPath
-        });
+        }).returning('ticket_id')
+
+        const ticket_id = createTicket.ticket_id || createTicket;
+
+        console.log('Created a ticket: ', ticket_id)
+
+        await knex('ticket_logs').insert({
+            ticket_id: ticket_id,
+            ticket_status: 'open',
+            ticket_subject,
+            ticket_urgencyLevel,
+            ticket_category,
+            created_by,
+            time_date: currentTimestamp,
+            changes_made: `${created_by} submmited the ticket, Ticket ID: ${ticket_id}`
+        })
+
 
         res.status(200).json({ message: 'Ticket created successfully' });
     } catch (err) {
@@ -196,6 +219,8 @@ router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
             Description,
             ticket_category,
             ticket_SubCategory,
+            updated_by,
+            changes_made
         } = req.body;
 
         let attachmentPath = null;
@@ -205,7 +230,7 @@ router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
             attachmentPath = req.body.Attachments;
         }
 
-        if (ticket_status === 'open' || ticket_status === 'escalate') {
+        if (ticket_status === 'open') {
             await knex('ticket_master').where('ticket_id', ticket_id).update({
                 assigned_to: '',
                 assigned_group: ''
@@ -221,8 +246,28 @@ router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
             ticket_SubCategory,
             Attachments: attachmentPath,
             Description,
-            updated_at: currentTimestamp
+            updated_at: currentTimestamp,
+            updated_by
         });
+
+        if (ticket_status === 'resolved') {
+            await knex('ticket_master').where('ticket_id', ticket_id).update({
+                resolved_at: currentTimestamp,
+                resolved_by: updated_by
+            })
+        }
+
+        await knex('ticket_logs').insert({
+            ticket_id,
+            ticket_status,
+            ticket_subject,
+            ticket_urgencyLevel,
+            ticket_category: ticket_category,
+            created_by: updated_by,
+            time_date: currentTimestamp,
+            changes_made
+        });
+
 
         res.status(200).json({ message: 'Ticket updated successfully' });
     } catch (err) {
@@ -237,6 +282,7 @@ router.post('/update-accept-ticket', async (req, res, next) => {
     try {
         const { user_id, ticket_id, ticket_status } = req.body
         const empInfo = await knex('users_master').where('user_id', user_id).first();
+        const ticketInfo = await knex('ticket_master').where('ticket_id', ticket_id).first();
         console.log('EMPOINFO CONMSOLE:', empInfo)
 
         if (ticket_status === 'closed') {
@@ -247,6 +293,17 @@ router.post('/update-accept-ticket', async (req, res, next) => {
                 updated_at: currentTimestamp,
                 responded_at: currentTimestamp,
                 ticket_status: 're-opened'
+            })
+
+            await knex('ticket_logs').insert({
+                ticket_id,
+                ticket_status,
+                ticket_subject: ticketInfo.ticket_subject,
+                ticket_urgencyLevel: ticketInfo.ticket_urgencyLevel,
+                ticket_category: ticketInfo.ticket_category,
+                created_by: empInfo.user_name,
+                time_date: currentTimestamp,
+                changes_made: `${empInfo.user_name} accepted closed ticket and re-opened the ticket, Ticket ID: ${ticket_id}`
             })
             console.log('Closed: ', closed)
         } else {
@@ -259,6 +316,58 @@ router.post('/update-accept-ticket', async (req, res, next) => {
             })
             console.log('NOT CLOSED: ', notclosed)
         }
+
+        if (ticket_status === 'open') {
+            await knex('ticket_logs').insert({
+                ticket_id,
+                ticket_status,
+                ticket_subject: ticketInfo.ticket_subject,
+                ticket_urgencyLevel: ticketInfo.ticket_urgencyLevel,
+                ticket_category: ticketInfo.ticket_category,
+                created_by: empInfo.user_name,
+                time_date: currentTimestamp,
+                changes_made: `${empInfo.user_name} accepted open ticket and was assigned ,Ticket ID: ${ticket_id}`
+            })
+        }
+        if (ticket_status === 'escalate2') {
+            await knex('ticket_logs').insert({
+                ticket_id,
+                ticket_status,
+                ticket_subject: ticketInfo.ticket_subject,
+                ticket_urgencyLevel: ticketInfo.ticket_urgencyLevel,
+                ticket_category: ticketInfo.ticket_category,
+                created_by: empInfo.user_name,
+                time_date: currentTimestamp,
+                changes_made: `${empInfo.user_name} accepted escalate2 ticket and was assigned, Ticket ID: ${ticket_id}`
+            })
+        }
+        if (ticket_status === 'escalate3') {
+            await knex('ticket_logs').insert({
+                ticket_id,
+                ticket_status,
+                ticket_subject: ticketInfo.ticket_subject,
+                ticket_urgencyLevel: ticketInfo.ticket_urgencyLevel,
+                ticket_category: ticketInfo.ticket_category,
+                created_by: empInfo.user_name,
+                time_date: currentTimestamp,
+                changes_made: `${empInfo.user_name} accepted escalate3 ticket and was assigned, Ticket ID: ${ticket_id}`
+            })
+        }
+        if (ticket_status === 'resolved') {
+            await knex('ticket_logs').insert({
+                ticket_id,
+                ticket_status,
+                ticket_subject: ticketInfo.ticket_subject,
+                ticket_urgencyLevel: ticketInfo.ticket_urgencyLevel,
+                ticket_category: ticketInfo.ticket_category,
+                created_by: empInfo.user_name,
+                time_date: currentTimestamp,
+                changes_made: `${empInfo.user_name} accepted resolved ticket and was assigned, Ticket ID: ${ticket_id}`
+            })
+        }
+
+
+
 
 
 
