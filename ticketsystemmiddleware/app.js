@@ -25,6 +25,7 @@ app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

@@ -14,7 +14,7 @@ const MaterialIcon = lazy(() => import('../views/ui-elements/icons/Material'));
 const Login = lazy(() => import('../views/auth/login'));
 
 const Sample = lazy(() => import('../views/sample'));
-
+const Dashboard = lazy(() => import('views/dashboard'));
 
 const CreateTicket = lazy(() => import('views/tickets/createticket'))
 const OpenTicket = lazy(() => import('views/tickets/openticket'))
@@ -57,8 +57,8 @@ const MainRoutes = {
   element: <RoleAccess />,
   children: [
     {
-      path: '/dashboard/sales',
-      element: withSpinner(<DashboardSales />)
+      path: '/dashboard',
+      element: withSpinner(<Dashboard />)
     },
     {
       path: '/register',

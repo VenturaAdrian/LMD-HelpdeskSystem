@@ -19,25 +19,25 @@ export default function SignIn1() {
   const [loginError, setLoginError] = useState('');
 
   useEffect(() => {
-      if (loginError) {
-        const timer = setTimeout(() => {
-          setLoginError('');
+    if (loginError) {
+      const timer = setTimeout(() => {
+        setLoginError('');
 
-        }, 3000);
-        return () => clearTimeout(timer);
-      }
-    }, [loginError]);
-  
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [loginError]);
+
 
   const Auth = async (e) => {
     e.preventDefault();
     console.log('USER: ', username, password);
 
-    if(!password.trim()){
+    if (!password.trim()) {
       setLoginError('Password is required!');
       return;
     }
-    if(!username.trim()){
+    if (!username.trim()) {
       setLoginError('Password is required!');
       return;
     }
@@ -49,31 +49,31 @@ export default function SignIn1() {
           pass_word: password,
         },
       })
-        if(!response.data.error){
-            localStorage.setItem('user', JSON.stringify(response.data));
-            localStorage.setItem('status',JSON.stringify([{id:0,value: 'Login'}]));
-            window.location.replace(`ticketsystem/dashboard/sales`);
-            console.log('Login success:', response.data);
-        } 
+      if (!response.data.error) {
+        localStorage.setItem('user', JSON.stringify(response.data));
+        localStorage.setItem('status', JSON.stringify([{ id: 0, value: 'Login' }]));
+        window.location.replace(`ticketsystem/dashboard`);
+        console.log('Login success:', response.data);
+      }
     } catch (err) {
-      if(err.response){
-        if(err.response.status === 401){
-        setLoginError('Incorrect password! Try again...');
-        console.log(`User ${username} entered incorrect password` + err.response.data.message);
+      if (err.response) {
+        if (err.response.status === 401) {
+          setLoginError('Incorrect password! Try again...');
+          console.log(`User ${username} entered incorrect password` + err.response.data.message);
         }
-        else if(err.response.status === 404){
+        else if (err.response.status === 404) {
           setLoginError('Invalid username or password. Please try again.');
           console.log(`Username and password is invalid, ${username} ${password}` + err.response.data.message);
-        }else{
+        } else {
           setLoginError('Invalid username or password. Please try again.');
           console.log(`Username and password is invalid, ${username} ${password}` + err.response.data.message);
         }
-      }else {
+      } else {
         setLoginError('Unable to connect to server. Please check your internet or try again later.');
         console.log('No response received:', err.message);
       }
-      
-      
+
+
     }
   };
 
@@ -98,7 +98,7 @@ export default function SignIn1() {
 
                 {/* ALERT BAR */}
                 {loginError && (
-                  <div 
+                  <div
                     className="position-fixed top-0 start-50 translate-middle-x mt-3"
                     style={{ zIndex: 9999, minWidth: '300px' }}
                   >

@@ -11,14 +11,7 @@ const menuItems = {
           id: 'dashboard',
           title: 'Dashboard',
           type: 'collapse',
-          children: [
-            {
-              id: 'sales',
-              title: 'Sales',
-              type: 'item',
-              url: '/dashboard/sales'
-            }
-          ]
+          url: '/dashboard'
         }
       ]
     },

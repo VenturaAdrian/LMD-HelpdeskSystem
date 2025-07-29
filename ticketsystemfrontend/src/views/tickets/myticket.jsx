@@ -18,19 +18,20 @@ export default function Myticket() {
         }
     }, []);
 
+    //Get All Tickets Assigned on User
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user'));
         if (!userName) return;
 
-
-
         axios.get(`${config.baseApi}/ticket/get-all-ticket`)
             .then((res) => {
+                //All of the ticket the user created.
                 if (user.emp_tier === 'none') {
                     const userTickets = res.data.filter(
                         (ticket) => ticket.created_by === userName
                     );
                     setAllTicket(userTickets);
+                    //If HelpDeskUser has assigned ticket.
                 } else if (user.emp_tier === 'tier1' || user.emp_tier === 'tier2' || user.emp_tier === 'tier3') {
                     const userTickets = res.data.filter(
                         (ticket) => ticket.assigned_to === userName
@@ -39,9 +40,8 @@ export default function Myticket() {
                 }
             })
             .catch((err) => console.error("Error fetching tickets:", err));
-
-
     }, [userName]);
+
     //-------------------STATUS DESIGN----------------------//
     const renderStatusBadge = (status) => {
         const baseStyle = {
@@ -197,7 +197,7 @@ export default function Myticket() {
                         ) : (
                             <tbody style={{ fontSize: '15px', color: '#333' }}>
                                 {allticket.map((ticket, index) => (
-                                    <tr key={index} style={{ borderBottom: '1px solid #f0f0f0', transition: 'background 0.2s ease' }}>
+                                    <tr key={index} onClick={() => HandleView(ticket)} style={{ borderBottom: '1px solid #f0f0f0', transition: 'background 0.2s ease' }}>
                                         <td>{ticket.ticket_id}</td>
                                         <td>{ticket.ticket_subject}</td>
                                         <td>{ticket.ticket_type}</td>

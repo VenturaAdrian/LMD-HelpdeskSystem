@@ -200,7 +200,7 @@ export default function ViewHDTicket() {
             };
             fetchCreatedby();
         }
-        if (formData.assigned_to !== "") {
+        if (formData.assigned_to) {
             const fetchHDUser = async () => {
                 try {
                     const response = await axios.get(`${config.baseApi}/authentication/get-by-username`, {
@@ -254,6 +254,11 @@ export default function ViewHDTicket() {
                 ticket_id: ticket_id,
                 ticket_status: formData.ticket_status
             });
+            await axios.post(`${config.baseApi}/ticket/notified-true`, {
+                ticket_id: ticket_id,
+                user_id: empInfo.user_id
+            })
+
             console.log(formData.ticket_status)
             window.location.reload();
             setIsEditable(true)
@@ -278,6 +283,12 @@ export default function ViewHDTicket() {
                     current_user: empInfo.user_name,
                     ticket_id: ticket_id
                 });
+
+                await axios.post(`${config.baseApi}/ticket/notified-true`, {
+                    ticket_id: ticket_id,
+                    user_id: empInfo.user_id
+                })
+                setNoteAlert(false);
                 setNotes('');
                 console.log('Submitted a note succesfully');
                 window.location.reload();
@@ -335,6 +346,11 @@ export default function ViewHDTicket() {
             } else {
                 dataToSend.append('Attachments', formData.Attachments || '');
             }
+
+            await axios.post(`${config.baseApi}/ticket/notified-true`, {
+                ticket_id: ticket_id,
+                user_id: empInfo.user_id
+            })
 
             await axios.post(`${config.baseApi}/ticket/update-ticket`, dataToSend, {
                 headers: { 'Content-Type': 'multipart/form-data' }
@@ -396,7 +412,7 @@ export default function ViewHDTicket() {
             style={{
                 background: 'linear-gradient(to bottom, #ffe798, #b8860b)',
                 minHeight: '100vh',
-                paddingTop: '50px',
+                paddingTop: '100px',
             }}
         >
             {successful && (

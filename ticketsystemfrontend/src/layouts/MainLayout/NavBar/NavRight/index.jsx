@@ -1,7 +1,8 @@
+
 import { Link } from 'react-router-dom';
 
 // react-bootstrap
-import { ListGroup, Dropdown, Form } from 'react-bootstrap';
+import { ListGroup, Dropdown, Form, Badge } from 'react-bootstrap';
 
 // third party
 import FeatherIcon from 'feather-icons-react';
@@ -11,16 +12,25 @@ import avatar2 from 'assets/images/user/avatar-2.jpg';
 
 import { useNavigate } from 'react-router';
 import { useEffect, useState } from 'react';
+
+import axios from 'axios';
+import config from 'config';
 // -----------------------|| NAV RIGHT ||-----------------------//
 
 export default function NavRight() {
   const [name, setName] = useState('');
   const [position, setPosition] = useState('');
+  const [userData, setUserData] = useState([]);
+  const [toFilter, setToFilter] = useState('');
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [notifContent, setNotifContent] = useState([]);
+  const [ticketIDS, setTicketIDS] = useState([]);
   const navigate = useNavigate()
 
   // Load user data from localStorage
   useEffect(() => {
     const empInfo = JSON.parse(localStorage.getItem('user'));
+    setUserData(empInfo)
     setPosition(empInfo.emp_position);
     if (empInfo?.emp_FirstName) {
       const FirstName =
@@ -32,8 +42,64 @@ export default function NavRight() {
         empInfo.emp_LastName.slice(1).toLowerCase()
       setName(FirstName + ' ' + LastName)
     }
-
   }, []);
+
+  // Set toFilter based on emp_tier
+  useEffect(() => {
+    if (!userData || !userData.emp_tier) return;
+
+    if (['tier1', 'tier2', 'tier3'].includes(userData.emp_tier)) {
+      setToFilter('assigned_to');
+    } else if (userData.emp_tier === 'none') {
+      setToFilter('created_by');
+    }
+  }, [userData]);
+
+  // Fetch notifications once toFilter is set
+  useEffect(() => {
+    if (!toFilter || !userData.user_name) return;
+
+    fetchNotifications(userData.user_name);
+  }, [toFilter, userData]);
+
+
+
+
+  const fetchNotifications = async (user_name) => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    try {
+      const response = await fetch(`${config.baseApi}/ticket/get-all-ticket`);
+      const data = await response.json(); // all tikcets result
+
+      const assignedTickets = data.filter(
+        (ticket) => ticket[toFilter] === user_name); //all tikcet assigned under username
+
+
+
+      if (user.emp_tier === 'tier1' || user.emp_tier === 'tier2' || user.emp_tier === 'tier3') {
+        const notifiedTickets = assignedTickets.filter(
+          (ticket) => ticket.is_notifiedhd === true); //ticket that has is_notified === true
+
+        setNotifContent(notifiedTickets.map(ticket => ticket.ticket_id)); // <-- set as array
+        setNotificationCount(notifiedTickets.length);
+      } else if (user.emp_tier === 'none') {
+        const notifiedTickets = assignedTickets.filter(
+          (ticket) => ticket.is_notified === true); //ticket that has is_notified === true
+
+        setNotifContent(notifiedTickets.map(ticket => ticket.ticket_id)); // <-- set as array
+        setNotificationCount(notifiedTickets.length);
+      }
+
+
+
+
+    } catch (err) {
+      setNotificationCount(0);
+      setNotifContent([]);
+    }
+  };
+
+
 
 
   const HandleLogOut = () => {
@@ -44,18 +110,60 @@ export default function NavRight() {
     navigate('/profile')
   }
 
+  const HandleView = async (context) => {
+    const params = new URLSearchParams({ id: context })
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (userData.emp_tier === 'tier1' || userData.emp_tier === 'tier2' || userData.emp_tier === 'tier3') {
+      console.log('was pressed');
+
+      await axios.post(`${config.baseApi}/ticket/update-notified-false`, {
+        ticket_id: context,
+        user_id: user.user_id
+      }).then(window.location.replace(`/ticketsystem/view-hd-ticket?${params.toString()}`))
+
+    } else if (userData.emp_tier === 'none') {
+      await axios.post(`${config.baseApi}/ticket/update-notified-false`, {
+        ticket_id: context,
+        user_id: user.user_id
+      }).then(window.location.replace(`/ticketsystem/view-ticket?${params.toString()}`))
+    }
+  }
 
   return (
     <ListGroup as="ul" bsPrefix=" " className="list-unstyled">
       <ListGroup.Item as="li" bsPrefix=" " className="pc-h-item">
         <Dropdown>
-          <Dropdown.Menu className="dropdown-menu-end pc-h-dropdown drp-search">
-            <Form className="px-3">
-              <div className="form-group mb-0 d-flex align-items-center">
-                <FeatherIcon icon="search" />
-                <Form.Control type="search" className="border-0 shadow-none" placeholder="Search here. . ." />
-              </div>
-            </Form>
+          <Dropdown.Toggle as="a" variant="link" className="pc-head-link arrow-none me-0">
+            <FeatherIcon icon="bell" />
+            {notificationCount > 0 && (
+              <Badge bg="danger" pill style={{ position: 'absolute', top: 8, right: 8 }}>
+                {notificationCount}
+              </Badge>
+            )}
+          </Dropdown.Toggle>
+          <Dropdown.Menu className="dropdown-menu-end pc-h-dropdown">
+            <Dropdown.Item>
+              {notifContent.length === 0 ? (
+                'No new notifications'
+              ) : (
+                <div style={{ fontSize: '15px', color: '#333' }}>
+                  {notifContent.map((content, index) => (
+                    <div key={index}
+                      style={{
+                        cursor: 'pointer',
+                        padding: '8px 0',
+                        borderBottom: '1px solid #eee'
+                      }}
+                    >
+                      <span className="text-muted" onClick={() => HandleView(content)}>
+                        New Notification from Ticket ID: {content}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
       </ListGroup.Item>

@@ -22,17 +22,6 @@ import config from 'config';
 export default function DashSales() {
 
 
-  const Test = (e) => {
-    try{
-      axios.post(`${config.baseApi}/authentication/test`,{
-      id_master: 'WORKING FRONTEND'
-    })
-    }catch(err){
-      console.log(err)
-    }
-     
-
-    }
   return (
     <Row>
       <Col md={12} xl={6}>

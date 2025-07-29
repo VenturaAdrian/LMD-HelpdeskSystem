@@ -114,6 +114,9 @@ const Tickets = db.define('ticket_master', {
     resolved_by: {
         type: DataTypes.STRING,
     },
+    is_notified: {
+        type: DataTypes.STRING,
+    },
 }, {
     freezeTableName: false,
     timestamps: false,
@@ -172,7 +175,7 @@ router.post('/create-ticket', upload.array('Attachments'), async (req, res) => {
             changes_made: `${created_by} submmited the ticket, Ticket ID: ${ticket_id}`
         })
 
-
+        console.log('Created a ticket successfully by ' + `${created_by}`)
         res.status(200).json({ message: 'Ticket created successfully' });
     } catch (err) {
         console.error('Error creating ticket:', err);
@@ -184,10 +187,62 @@ router.get('/get-all-ticket', async (req, res) => {
     try {
         const alltickets = await knex('ticket_master').select('*');
         res.json(alltickets)
-        console.log('ALL TICKETS: ', alltickets)
+        console.log('triggered /get-all-tikcet')
 
     } catch (err) {
         console.log('INTERNAL ERROR: ', err)
+    }
+})
+
+router.post('/notified-true', async (req, res) => {
+    try {
+        const { ticket_id, user_id } = req.body;
+        const empInfo = await knex('users_master').where('user_id', user_id).first();
+
+        if (empInfo.emp_tier === 'tier1' ||
+            empInfo.emp_tier === 'tier2' ||
+            empInfo.emp_tier === 'tier3') {
+            await knex('ticket_master').where({ ticket_id: ticket_id }).update({
+                is_notified: true
+            })
+        } else if (empInfo.emp_tier === 'none') {
+            await knex('ticket_master').where({ ticket_id: ticket_id }).update({
+                is_notifiedhd: true
+            })
+        }
+
+        console.log('Triggered /Update-notified-true')
+        console.log('Notify ticket: ', ticket_id)
+        res.status(200).json({ message: "Updated notif", ticket_id });
+    } catch (err) {
+        console.log(`Unable to update notification: `, err)
+        res.status(500).json({ error: 'Failed to update notification' });
+    }
+})
+
+router.post('/update-notified-false', async (req, res) => {
+    try {
+        const { ticket_id, user_id } = req.body;
+        const empInfo = await knex('users_master').where('user_id', user_id).first();
+
+        if (empInfo.emp_tier === 'tier1' ||
+            empInfo.emp_tier === 'tier2' ||
+            empInfo.emp_tier === 'tier3') {
+            await knex('ticket_master').where({ ticket_id: ticket_id }).update({
+                is_notifiedhd: false
+
+            })
+        } else if (empInfo.emp_tier === 'none') {
+            await knex('ticket_master').where({ ticket_id: ticket_id }).update({
+                is_notified: false
+            })
+        }
+
+        console.log('Triggered /Update-notified-false')
+        console.log('Un-Notify ticket: ', ticket_id)
+        res.status(200).json({ message: "Updated notif", ticket_id });
+    } catch (err) {
+        console.log(`Unable to update notification: `, err)
     }
 })
 
@@ -198,7 +253,7 @@ router.get('/ticket-by-id', async (req, res, next) => {
                 ticket_id: req.query.id
             }
         })
-        console.log(getById);
+        console.log('triggered /ticket-by-id')
         res.json(getById[0])
     } catch (err) {
         console.error('Error fetching getbyid internal:', err);
@@ -268,7 +323,7 @@ router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
             changes_made
         });
 
-
+        console.log(`Ticket ${ticket_id} was updated by ${updated_by} `)
         res.status(200).json({ message: 'Ticket updated successfully' });
     } catch (err) {
         console.error('Error updating ticket:', err);
@@ -365,12 +420,7 @@ router.post('/update-accept-ticket', async (req, res, next) => {
                 changes_made: `${empInfo.user_name} accepted resolved ticket and was assigned, Ticket ID: ${ticket_id}`
             })
         }
-
-
-
-
-
-
+        console.log(`Ticket ${ticket_id} was successfully accepted by ${empInfo.user_name}`)
     } catch (err) {
         console.log('Update Accept console: ', err)
     }
@@ -392,7 +442,8 @@ router.post('/note-post', async (req, res, next) => {
             created_at: currentTimestamp,
             ticket_id: ticket_id
         })
-        res.status(200).json({ message: 'Comment added successfully' });
+        console.log(`${current_user} placed a note successfully`)
+        res.status(200).json({ message: 'PLaced a note successfully' });
     } catch (err) {
         console.log('Internal Error: ', err)
     }
@@ -404,7 +455,7 @@ router.get('/get-all-notes/:ticket_id', async (req, res, next) => {
         const notes = await knex('notes_master').where({ ticket_id })
             .orderBy('created_at', 'created_by, note');
         res.json(notes);
-        console.log(notes);
+        console.log('triggered /get-all-notes/:ticket_id');
     } catch (err) {
         console.log('INTERNAL ERROR: ', err)
     }

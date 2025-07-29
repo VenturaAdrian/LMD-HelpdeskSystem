@@ -162,6 +162,11 @@ export default function ViewTicket() {
                 current_user: empInfo.user_name,
                 ticket_id: ticket_id
             });
+
+            await axios.post(`${config.baseApi}/ticket/notified-true`, {
+                ticket_id: ticket_id,
+                user_id: empInfo.user_id
+            })
             setShowCloseReasonModal(false);
             setClosureReason('');
             setClose(false);
@@ -222,6 +227,12 @@ export default function ViewTicket() {
                 });
             }
 
+            // Notify the HD that the ticket has been updated
+            await axios.post(`${config.baseApi}/ticket/notified-true`, {
+                ticket_id: ticket_id,
+                user_id: currentUserData.user_id
+            })
+
             await axios.post(`${config.baseApi}/ticket/update-ticket`, dataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
@@ -280,7 +291,7 @@ export default function ViewTicket() {
     };
 
     return (
-        <Container fluid className="pt-100 pb-4" style={{ background: 'linear-gradient(to bottom, #ffe798, #b8860b)', minHeight: '100vh', paddingTop: '50px' }}>
+        <Container fluid className="pt-100 pb-4" style={{ background: 'linear-gradient(to bottom, #ffe798, #b8860b)', minHeight: '100vh', paddingTop: '100px' }}>
             {/* ALERT BAR */}
             {error && (
                 <div
