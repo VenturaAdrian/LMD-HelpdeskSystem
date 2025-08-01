@@ -117,6 +117,12 @@ const Tickets = db.define('ticket_master', {
     is_notified: {
         type: DataTypes.STRING,
     },
+    is_active: {
+        type: DataTypes.STRING,
+    },
+    ticket_for: {
+        type: DataTypes.STRING,
+    },
 }, {
     freezeTableName: false,
     timestamps: false,
@@ -153,11 +159,13 @@ router.post('/create-ticket', upload.array('Attachments'), async (req, res) => {
             ticket_urgencyLevel,
             ticket_category,
             ticket_SubCategory,
+            ticket_for: created_by,
             asset_number,
             Description,
             created_by,
             created_at: currentTimestamp,
-            Attachments: attachmentPath
+            Attachments: attachmentPath,
+            is_active: true
         }).returning('ticket_id')
 
         const ticket_id = createTicket.ticket_id || createTicket;
@@ -275,10 +283,41 @@ router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
             ticket_category,
             ticket_SubCategory,
             updated_by,
+            ticket_for,
             changes_made
         } = req.body;
 
+
         let attachmentPath = null;
+
+        if (req.files && req.files.length > 0) {
+            // Fetch current attachment path from DB
+            const existingTicket = await knex('ticket_master')
+                .select('Attachments')
+                .where('ticket_id', ticket_id)
+                .first();
+
+            if (existingTicket && existingTicket.Attachments) {
+                const oldPaths = existingTicket.Attachments.split(',');
+                for (const oldPath of oldPaths) {
+                    const fullPath = path.join(__dirname, '..', oldPath);
+                    fs.unlink(fullPath, (err) => {
+                        if (err) {
+                            console.error(`Error deleting file ${fullPath}:`, err.message);
+                        } else {
+                            console.log(`Deleted old attachment: ${fullPath}`);
+                        }
+                    });
+                }
+            }
+
+            // Replace with new uploaded file paths
+            attachmentPath = req.files.map(file => file.path.replace(/\\/g, '/')).join(',');
+        } else if (req.body.Attachments) {
+            // No new file, retain old one
+            attachmentPath = req.body.Attachments;
+        }
+
         if (req.files && req.files.length > 0) {
             attachmentPath = req.files.map(file => file.path.replace(/\\/g, '/')).join(',');
         } else if (req.body.Attachments) {
@@ -301,6 +340,7 @@ router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
             ticket_SubCategory,
             Attachments: attachmentPath,
             Description,
+            ticket_for,
             updated_at: currentTimestamp,
             updated_by
         });

@@ -136,6 +136,7 @@ router.post('/register', async function (req, res, next) {
     emp_email,
     emp_tier,
     emp_role,
+    emp_phone,
     emp_department,
     emp_position,
     current_user
@@ -150,6 +151,7 @@ router.post('/register', async function (req, res, next) {
       emp_email: emp_email,
       emp_tier: emp_tier,
       emp_role: emp_role,
+      emp_phone: emp_phone,
       emp_department: emp_department,
       emp_position: emp_position,
       created_by: current_user,
@@ -164,11 +166,34 @@ router.post('/register', async function (req, res, next) {
   }
 })
 
+router.get('/get-all-users', async (req, res, next) => {
+  try {
+    const getAllUsers = await knex('users_master').select('*');
+    res.json(getAllUsers)
+    console.log('Triggered /get-all-users')
+  } catch (err) {
+    console.log('Unable to fetch all users');
+
+  }
+})
+
 router.get('/get-by-username', async (req, res, next) => {
   try {
     const getCreatedBy = await Users1.findAll({
       where: {
         user_name: req.query.user_name
+      }
+    })
+    res.json(getCreatedBy[0])
+  } catch (err) {
+    console.log('GET BY USERNAME CONOSOLE: ', err)
+  }
+})
+router.get('/get-by-id', async (req, res, next) => {
+  try {
+    const getCreatedBy = await Users1.findAll({
+      where: {
+        user_id: req.query.user_id
       }
     })
     res.json(getCreatedBy[0])

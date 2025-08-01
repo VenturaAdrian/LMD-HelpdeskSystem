@@ -1,15 +1,17 @@
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from 'react-icons/fa';
 import { useEffect, useState } from "react";
-import { Container, Row, Col, Form, Card, Button, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Form, Card, Button, Alert, FormSelect } from 'react-bootstrap';
 import axios from 'axios';
 import config from 'config';
+import Select from 'react-select';
 
 export default function ViewHDTicket() {
     const [formData, setFormData] = useState({});
     const [originalData, setOriginalData] = useState({});
     const [hasChanges, setHasChanges] = useState(false);
-    const [createdByData, setCreatedByData] = useState({});
+    const [ticketForData, setTicketForData] = useState({});
     const [hdUser, setHDUser] = useState({});
+    const [allUser, setAllUser] = useState([]);
     const [tier, setTier] = useState('');
     const [isEditable, setIsEditable] = useState(false);
     const [showAcceptButton, setShowAcceptButton] = useState(false);
@@ -30,6 +32,15 @@ export default function ViewHDTicket() {
         hardware: ['Computer', 'Laptop', 'Monitor', 'Printer/Scanner', 'Peripherals', 'Fax', 'Others'],
         network: ['Internet Connectivity', 'Wi-Fi', 'Email/Server Access', 'Network Printer/Scanner', 'Firewall', 'Others'],
         software: ['Application Not Responding', 'Installation/Uninstallation', 'System Updates', 'Login Issue', 'Outlook', 'Security', 'Others'],
+    };
+
+    const customSelectStyles = {
+        control: (provided, state) => ({
+            ...provided,
+            border: state.isFocused ? '2px solid #fdc10dff' : '2px solid ' + provided.borderColor,
+            boxShadow: state.isFocused ? '1px rgba(253, 169, 13, 1)' : provided.boxShadow,
+            '&:hover': { borderColor: '#fdc10dff' },
+        }),
     };
     //Alerts timeout
     useEffect(() => {
@@ -187,18 +198,18 @@ export default function ViewHDTicket() {
 
     //Get user from ticket
     useEffect(() => {
-        if (formData.created_by) {
-            const fetchCreatedby = async () => {
+        if (formData.ticket_for) {
+            const fetch = async () => {
                 try {
                     const response = await axios.get(`${config.baseApi}/authentication/get-by-username`, {
-                        params: { user_name: formData.created_by }
+                        params: { user_name: formData.ticket_for }
                     });
-                    setCreatedByData(response.data);
+                    setTicketForData(response.data);
                 } catch (err) {
                     console.log(err);
                 }
             };
-            fetchCreatedby();
+            fetch();
         }
         if (formData.assigned_to) {
             const fetchHDUser = async () => {
@@ -225,7 +236,7 @@ export default function ViewHDTicket() {
 
 
 
-    }, [formData.created_by, formData.assigned_to, formData.assigned_group, formData.ticket_status]);
+    }, [formData.ticket_for, formData.assigned_to, formData.assigned_group, formData.ticket_status]);
 
     //Get the ticket 
     useEffect(() => {
@@ -245,6 +256,17 @@ export default function ViewHDTicket() {
         fetchData();
     }, [ticket_id]);
 
+    useEffect(() => {
+        axios.get(`${config.baseApi}/authentication/get-all-users`)
+            .then((res) => {
+                const justUsers = res.data.filter(user => user.emp_tier === 'none');
+                setAllUser(justUsers);
+            })
+            .catch((err) => {
+                console.error("Error fetching users:", err);
+            });
+    }, [])
+    //Accept ticket function
     const HandleAcceptButton = async () => {
         const empInfo = JSON.parse(localStorage.getItem('user'));
 
@@ -254,6 +276,7 @@ export default function ViewHDTicket() {
                 ticket_id: ticket_id,
                 ticket_status: formData.ticket_status
             });
+            //Notify User
             await axios.post(`${config.baseApi}/ticket/notified-true`, {
                 ticket_id: ticket_id,
                 user_id: empInfo.user_id
@@ -303,7 +326,7 @@ export default function ViewHDTicket() {
         const { name, value } = e.target;
         setFormData(prev => {
             const updatedForm = { ...prev, [name]: value };
-            const fieldsToCheck = ['ticket_subject', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory'];
+            const fieldsToCheck = ['ticket_subject', 'ticket_for', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory'];
             const changed = fieldsToCheck.some(field => updatedForm[field] !== originalData[field]);
             setHasChanges(changed);
 
@@ -313,10 +336,11 @@ export default function ViewHDTicket() {
 
     const handleSave = async () => {
         try {
+            console.log(formData.ticket_for)
             //Check changes
             const empInfo = JSON.parse(localStorage.getItem('user'));
             const changedFields = [];
-            const fieldsToCheck = ['ticket_subject', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory', 'Description', 'Attachments'];
+            const fieldsToCheck = ['ticket_subject', 'ticket_for', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory', 'Description', 'Attachments'];
             fieldsToCheck.forEach(field => {
                 const original = originalData[field];
                 const current = formData[field];
@@ -335,6 +359,7 @@ export default function ViewHDTicket() {
             dataToSend.append('ticket_category', formData.ticket_category);
             dataToSend.append('ticket_SubCategory', formData.ticket_SubCategory);
             dataToSend.append('ticket_urgencyLevel', formData.ticket_urgencyLevel);
+            dataToSend.append('ticket_for', formData.ticket_for);
             dataToSend.append('Description', formData.Description);
             dataToSend.append('updated_by', empInfo.user_name)
             dataToSend.append('changes_made', changesMade);
@@ -532,26 +557,39 @@ export default function ViewHDTicket() {
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Employee</Form.Label>
-                                <Form.Control
+                                <Select
+                                    name="ticket_for"
                                     value={
-                                        createdByData.emp_FirstName
-                                            ? `${createdByData.emp_FirstName} ${createdByData.emp_LastName}`
-                                            : '-'
+                                        allUser.find(u => u.user_name === formData.ticket_for)
+                                            ? {
+                                                value: formData.ticket_for,
+                                                label: `${allUser.find(u => u.user_name === formData.ticket_for).emp_FirstName} ${allUser.find(u => u.user_name === formData.ticket_for).emp_LastName}`
+                                            }
+                                            : null
                                     }
-                                    disabled
+                                    onChange={option => handleChange({ target: { name: 'ticket_for', value: option ? option.value : '' } })}
+                                    options={allUser.map(user => ({
+                                        value: user.user_name,
+                                        label: `${user.emp_FirstName} ${user.emp_LastName}`
+                                    }))}
+                                    isDisabled={!isEditable}
+                                    isClearable
+                                    placeholder="Select Employee"
+                                    styles={customSelectStyles}
                                 />
+
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Department</Form.Label>
                                 <Form.Control
-                                    value={createdByData.emp_department ?? '-'}
+                                    value={ticketForData.emp_department ?? '-'}
                                     disabled
                                 />
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Position</Form.Label>
                                 <Form.Control
-                                    value={createdByData.emp_position ?? ''}
+                                    value={ticketForData.emp_position ?? ''}
                                     disabled
                                 />
                             </Form.Group>

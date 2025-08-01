@@ -25,6 +25,7 @@ export default function SignUp1() {
   const [confirmpassword, setConfirmPassword] = useState('');
   const [tier, setTier] = useState('');
   const [role, setRole] = useState('');
+  const [phone, setPhone] = useState('');
   const [department, setDepartment] = useState('');
   const [position, setPosition] = useState('');
   const [error, setError] = useState('');
@@ -39,6 +40,7 @@ export default function SignUp1() {
   const confirmPasswordRef = useRef();
   const tierRef = useRef();
   const roleRef = useRef();
+  const phoneRef = useRef();
   const departmentRef = useRef();
   const positionRef = useRef();
 
@@ -69,6 +71,7 @@ export default function SignUp1() {
       !confirmpassword &&
       !tier &&
       !role &&
+      !phone &&
       !department &&
       !position) {
       setError('All fields are required!')
@@ -126,6 +129,11 @@ export default function SignUp1() {
       roleRef.current.focus();
       return;
     }
+    if (!phone) {
+      setError('Role is required!');
+      phoneRef.current.focus();
+      return;
+    }
     if (!department.trim()) {
       setError('Department is required!');
       departmentRef.current.focus();
@@ -148,6 +156,7 @@ export default function SignUp1() {
         pass_word: password,
         emp_tier: tier,
         emp_role: role,
+        emp_phone: phone,
         emp_department: department,
         emp_position: position,
         current_user: currentUser
@@ -166,6 +175,7 @@ export default function SignUp1() {
         setConfirmPassword('');
         setTier('')
         setRole('');
+        setPhone('');
         setDepartment('');
         setPosition('');
 
@@ -320,23 +330,43 @@ export default function SignUp1() {
                     </Col>
                   </Row>
 
-                  <Form.Label>Tier</Form.Label>
-                  <InputGroup className="mb-3">
-                    <InputGroup.Text>
-                      <FeatherIcon icon="users" />
-                    </InputGroup.Text>
-                    <Form.Select
-                      value={tier}
-                      onChange={(e) => setTier(e.target.value)}
-                      ref={tierRef}
-                    >
-                      <option value="">Select Tier</option>
-                      <option value="tier1">Tier 1</option>
-                      <option value="tier2">Tier 2</option>
-                      <option value="tier3">Tier 3</option>
-                      <option value="none">None</option>
-                    </Form.Select>
-                  </InputGroup>
+                  <Row>
+                    <Col xs={12} sm={6} className="mb-3">
+                      <Form.Label>Tier</Form.Label>
+                      <InputGroup className="mb-3">
+                        <InputGroup.Text>
+                          <FeatherIcon icon="users" />
+                        </InputGroup.Text>
+                        <Form.Select
+                          value={tier}
+                          onChange={(e) => setTier(e.target.value)}
+                          ref={tierRef}
+                        >
+                          <option value="">Select Tier</option>
+                          <option value="tier1">Tier 1</option>
+                          <option value="tier2">Tier 2</option>
+                          <option value="tier3">Tier 3</option>
+                          <option value="none">None</option>
+                        </Form.Select>
+                      </InputGroup>
+                    </Col>
+                    <Col xs={12} sm={6} className="mb-3">
+                      <Form.Label>Local Phone</Form.Label>
+                      <InputGroup>
+                        <InputGroup.Text>
+                          <FeatherIcon icon="phone" />
+                        </InputGroup.Text>
+                        <Form.Control
+                          type="text"
+                          placeholder="Local Phone"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          ref={phoneRef}
+                        />
+                      </InputGroup>
+                    </Col>
+                  </Row>
+
 
                   <Form.Label>Role</Form.Label>
                   <InputGroup className="mb-3">

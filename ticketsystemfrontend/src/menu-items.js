@@ -1,5 +1,6 @@
 const empInfo = JSON.parse(localStorage.getItem('user')) || {};
 const empTier = empInfo.emp_tier;
+const empRole = empInfo.emp_role;
 
 const menuItems = {
   items: [
@@ -52,6 +53,15 @@ const menuItems = {
           icon: 'material-icons-two-tone',
           iconname: 'all_inbox',
           url: '/all-tickets',
+          target: true
+        },
+        {
+          id: 'all-users',
+          title: 'Users',
+          type: 'item',
+          icon: 'material-icons-two-tone',
+          iconname: 'groups',
+          url: '/users',
           target: true
         },
         {
@@ -113,13 +123,28 @@ const menuItems = {
   ]
 };
 
-if (empTier === 'none') {
-  // Remove 'register' and 'all-tickets' from Tools
+if (empTier === 'none' && empRole === 'user') {
   const tools = menuItems.items.find(item => item.id === 'tools');
   if (tools) {
     tools.children = tools.children.filter(
       child => child.id !== 'register' && child.id !== 'all-tickets' &&
-        child.id !== 'open-ticket' && child.id !== 'assets'
+        child.id !== 'open-ticket' && child.id !== 'assets' && child.id !== 'all-users'
+    );
+  }
+
+
+  const pages = menuItems.items.find(item => item.id === 'pages');
+  if (pages) {
+    pages.children = pages.children.filter(child => child.id !== 'reports');
+  }
+}
+
+if (empTier === 'none' && empRole === 'admin') {
+  const tools = menuItems.items.find(item => item.id === 'tools');
+  if (tools) {
+    tools.children = tools.children.filter(
+      child => child.id !== 'register' &&
+        child.id !== 'open-ticket' && child.id !== 'assets' && child.id !== 'all-users'
     );
   }
 

@@ -51,7 +51,7 @@ export default function NavRight() {
     if (['tier1', 'tier2', 'tier3'].includes(userData.emp_tier)) {
       setToFilter('assigned_to');
     } else if (userData.emp_tier === 'none') {
-      setToFilter('created_by');
+      setToFilter('ticket_for');
     }
   }, [userData]);
 
@@ -98,6 +98,19 @@ export default function NavRight() {
       setNotifContent([]);
     }
   };
+
+  useEffect(() => {
+    if (!toFilter || !userData.user_name) return;
+
+    const interval = setInterval(() => {
+      fetchNotifications(userData.user_name);
+    }, 10000); // every 10 seconds
+
+    // Call it once immediately
+    fetchNotifications(userData.user_name);
+
+    return () => clearInterval(interval); // clear on unmount
+  }, [toFilter, userData]);
 
 
 

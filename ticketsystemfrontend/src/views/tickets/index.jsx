@@ -6,7 +6,7 @@ import config from 'config';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 
-export default function Announcements() {
+export default function Tickets() {
     return (
         <Container
             fluid
@@ -23,15 +23,18 @@ export default function Announcements() {
                 id="noanim-tab-example"
                 className="mb-3"
             >
-                <Tab eventKey="home" title="Home">
-                    Tab content for Home
+                <Tab eventKey="open" title="Open Tickets">
+                    OPEN TICKETS HD
                 </Tab>
-                <Tab eventKey="profile" title="Profile">
+                <Tab eventKey="my" title="My Tickets">
+                    OPEN TICKETS HD
+                </Tab>
+                <Tab eventKey="all" title="tickets">
                     Tab content for Profile
                 </Tab>
-                <Tab eventKey="contact" title="Contact" disabled>
+                {/* <Tab eventKey="contact" title="Contact" disabled>
                     Tab content for Contact
-                </Tab>
+                </Tab> */}
             </Tabs>
 
 

@@ -8,7 +8,7 @@ export default function ViewTicket() {
     const [formData, setFormData] = useState({});
     const [originalData, setOriginalData] = useState({});
     const [hasChanges, setHasChanges] = useState(false);
-    const [createdByData, setCreatedByData] = useState({});
+    const [ticketForData, setTicketForData] = useState({});
     const [currentUserData, setCurrentUserData] = useState({});
     const ticket_id = new URLSearchParams(window.location.search).get('id');
 
@@ -100,20 +100,20 @@ export default function ViewTicket() {
 
     // Fetch created by user data
     useEffect(() => {
-        if (formData.created_by) {
+        if (formData.ticket_for) {
             const fetchCreatedby = async () => {
                 try {
                     const response = await axios.get(`${config.baseApi}/authentication/get-by-username`, {
-                        params: { user_name: formData.created_by }
+                        params: { user_name: formData.ticket_for }
                     });
-                    setCreatedByData(response.data);
+                    setTicketForData(response.data);
                 } catch (err) {
                     console.log(err);
                 }
             };
             fetchCreatedby();
         }
-    }, [formData.created_by]);
+    }, [formData.ticket_for]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -152,17 +152,20 @@ export default function ViewTicket() {
         }
     }
 
+    //Close tikcet function
     const handleConfirmClosure = async (e) => {
         e.preventDefault();
         const empInfo = JSON.parse(localStorage.getItem('user'));
         if (!closureReason.trim()) return;
         try {
+            //place a note
             await axios.post(`${config.baseApi}/ticket/note-post`, {
                 notes: closureReason,
                 current_user: empInfo.user_name,
                 ticket_id: ticket_id
             });
 
+            //Send app notifcation 
             await axios.post(`${config.baseApi}/ticket/notified-true`, {
                 ticket_id: ticket_id,
                 user_id: empInfo.user_id
@@ -227,7 +230,7 @@ export default function ViewTicket() {
                 });
             }
 
-            // Notify the HD that the ticket has been updated
+            // Send notification to HD
             await axios.post(`${config.baseApi}/ticket/notified-true`, {
                 ticket_id: ticket_id,
                 user_id: currentUserData.user_id
@@ -251,6 +254,7 @@ export default function ViewTicket() {
             setError('Failed to update ticket.');
         }
     };
+
     //Display the files uploaded
     const renderAttachment = () => {
         if (!formData.Attachments) return <div className="text-muted fst-italic">No attachments</div>;
@@ -352,15 +356,15 @@ export default function ViewTicket() {
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Employee</Form.Label>
-                                <Form.Control value={createdByData.emp_FirstName + " " + createdByData.emp_LastName || ''} disabled />
+                                <Form.Control value={ticketForData.emp_FirstName + " " + ticketForData.emp_LastName || ''} disabled />
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Department</Form.Label>
-                                <Form.Control value={createdByData.emp_department || ''} disabled />
+                                <Form.Control value={ticketForData.emp_department || ''} disabled />
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Position</Form.Label>
-                                <Form.Control value={createdByData.emp_position || ''} disabled />
+                                <Form.Control value={ticketForData.emp_position || ''} disabled />
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Assigned To</Form.Label>

@@ -28,7 +28,7 @@ export default function Myticket() {
                 //All of the ticket the user created.
                 if (user.emp_tier === 'none') {
                     const userTickets = res.data.filter(
-                        (ticket) => ticket.created_by === userName
+                        (ticket) => ticket.ticket_for === userName
                     );
                     setAllTicket(userTickets);
                     //If HelpDeskUser has assigned ticket.

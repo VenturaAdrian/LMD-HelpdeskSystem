@@ -4,30 +4,33 @@ import MainLayout from 'layouts/MainLayout';
 import { Navigate } from 'react-router-dom';
 
 
+
 // Lazy imports
-const DashboardSales = lazy(() => import('../views/dashboard/DashSales/index'));
 const Typography = lazy(() => import('../views/ui-elements/basic/BasicTypography'));
 const Color = lazy(() => import('../views/ui-elements/basic/BasicColor'));
 const FeatherIcon = lazy(() => import('../views/ui-elements/icons/Feather'));
 const FontAwesome = lazy(() => import('../views/ui-elements/icons/FontAwesome'));
 const MaterialIcon = lazy(() => import('../views/ui-elements/icons/Material'));
-const Login = lazy(() => import('../views/auth/login'));
 
-const Sample = lazy(() => import('../views/sample'));
+const Register = lazy(() => import('views/auth/register'))
 const Dashboard = lazy(() => import('views/dashboard'));
-
-const CreateTicket = lazy(() => import('views/tickets/createticket'))
-const OpenTicket = lazy(() => import('views/tickets/openticket'))
 const Assets = lazy(() => import('views/assets'))
 const Announcements = lazy(() => import('views/pages/announcements'));
 const Knowledgebase = lazy(() => import('views/pages/knowledgebase'));
 const Reports = lazy(() => import('views/pages/reports'));
+
+const Tickets = lazy(() => import('views/tickets'))
+const CreateTicket = lazy(() => import('views/tickets/createticket'))
+const OpenTicket = lazy(() => import('views/tickets/openticket'))
 const Alltickets = lazy(() => import('views/tickets/alltickets'));
 const ViewTicket = lazy(() => import('views/tickets/viewticket'));
 const ViewHDTicket = lazy(() => import('views/tickets/viewhdticket'));
 const Myticket = lazy(() => import('views/tickets/myticket'));
+
 const Profile = lazy(() => import('views/pages/profile'));
-const Register = lazy(() => import('views/auth/register'))
+const Users = lazy(() => import('views/users'))
+const UsersView = lazy(() => import('views/users/users-view'))
+
 
 
 
@@ -85,10 +88,6 @@ const MainRoutes = {
       element: withSpinner(<MaterialIcon />)
     },
     {
-      path: '/sample-page',
-      element: withSpinner(<Sample />)
-    },
-    {
       path: '/create-ticket',
       element: withSpinner(<CreateTicket />)
     },
@@ -132,6 +131,18 @@ const MainRoutes = {
       path: '/view-hd-ticket',
       element: withSpinner(<ViewHDTicket />)
     },
+    {
+      path: '/users',
+      element: withSpinner(<Users />)
+    },
+    {
+      path: '/users-view',
+      element: withSpinner(<UsersView />)
+    },
+    {
+      path: '/tickets',
+      element: <Tickets />
+    }
 
 
 
