@@ -221,4 +221,14 @@ router.get('/get-all-notes-usernames', async (req, res) => {
 });
 
 
+router.get('/get-all-notes', async (req, res) => {
+  try {
+    const getAll = await knex('notes_master').select('*');
+    res.json(getAll)
+  } catch (err) {
+    console.log('INTERNAL ERROR: ', err)
+  }
+})
+
+
 module.exports = router;

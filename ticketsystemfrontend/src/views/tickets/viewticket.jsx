@@ -10,6 +10,7 @@ export default function ViewTicket() {
     const [hasChanges, setHasChanges] = useState(false);
     const [ticketForData, setTicketForData] = useState({});
     const [currentUserData, setCurrentUserData] = useState({});
+    const [hdUser, setHDUser] = useState({});
     const ticket_id = new URLSearchParams(window.location.search).get('id');
 
     const [allnotes, setAllNotes] = useState([]);
@@ -112,6 +113,20 @@ export default function ViewTicket() {
                 }
             };
             fetchCreatedby();
+        }
+
+        if (formData.assigned_to) {
+            const fetchHDUser = async () => {
+                try {
+                    const response = await axios.get(`${config.baseApi}/authentication/get-by-username`, {
+                        params: { user_name: formData.assigned_to }
+                    });
+                    setHDUser(response.data);
+                } catch (err) {
+                    console.log(err);
+                }
+            };
+            fetchHDUser();
         }
     }, [formData.ticket_for]);
 
@@ -368,7 +383,15 @@ export default function ViewTicket() {
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Assigned To</Form.Label>
-                                <Form.Control name="assigned_to" value={formData.assigned_to || '-'} disabled />
+                                <Form.Control
+                                    name="assigned_to"
+                                    value={
+                                        hdUser?.emp_FirstName && hdUser?.emp_LastName
+                                            ? `${hdUser.emp_FirstName} ${hdUser.emp_LastName}`
+                                            : '-'
+                                    }
+                                    disabled
+                                />
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Assigned Group</Form.Label>

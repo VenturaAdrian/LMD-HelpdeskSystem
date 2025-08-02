@@ -26,6 +26,8 @@ const Alltickets = lazy(() => import('views/tickets/alltickets'));
 const ViewTicket = lazy(() => import('views/tickets/viewticket'));
 const ViewHDTicket = lazy(() => import('views/tickets/viewhdticket'));
 const Myticket = lazy(() => import('views/tickets/myticket'));
+const History = lazy(() => import('views/tickets/history'));
+
 
 const Profile = lazy(() => import('views/pages/profile'));
 const Users = lazy(() => import('views/users'))
@@ -142,7 +144,12 @@ const MainRoutes = {
     {
       path: '/tickets',
       element: <Tickets />
+    },
+    {
+      path: '/history',
+      element: <History />
     }
+
 
 
 

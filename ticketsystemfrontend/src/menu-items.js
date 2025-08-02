@@ -29,30 +29,12 @@ const menuItems = {
           target: true
         },
         {
-          id: 'my-ticket',
-          title: 'My Ticket',
-          type: 'item',
-          icon: 'material-icons-two-tone',
-          iconname: 'confirmation_number',
-          url: '/my-ticket',
-          target: true
-        },
-        {
-          id: 'open-ticket',
-          title: 'Open Tickets',
-          type: 'item',
-          icon: 'material-icons-two-tone',
-          iconname: 'list_alt',
-          url: '/open-ticket',
-          target: true
-        },
-        {
-          id: 'all-tickets',
-          title: 'All Tickets',
+          id: 'tickets',
+          title: 'Tickets',
           type: 'item',
           icon: 'material-icons-two-tone',
           iconname: 'all_inbox',
-          url: '/all-tickets',
+          url: '/tickets',
           target: true
         },
         {
@@ -125,13 +107,12 @@ const menuItems = {
 
 if (empTier === 'none' && empRole === 'user') {
   const tools = menuItems.items.find(item => item.id === 'tools');
+
   if (tools) {
     tools.children = tools.children.filter(
-      child => child.id !== 'register' && child.id !== 'all-tickets' &&
-        child.id !== 'open-ticket' && child.id !== 'assets' && child.id !== 'all-users'
+      child => child.id !== 'register' && child.id !== 'assets' && child.id !== 'all-users'
     );
   }
-
 
   const pages = menuItems.items.find(item => item.id === 'pages');
   if (pages) {
@@ -144,7 +125,7 @@ if (empTier === 'none' && empRole === 'admin') {
   if (tools) {
     tools.children = tools.children.filter(
       child => child.id !== 'register' &&
-        child.id !== 'open-ticket' && child.id !== 'assets' && child.id !== 'all-users'
+        child.id !== 'assets' && child.id !== 'all-users'
     );
   }
 
