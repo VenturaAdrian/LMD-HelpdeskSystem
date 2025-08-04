@@ -198,6 +198,8 @@ export default function ViewHDTicket() {
 
     //Get user from ticket
     useEffect(() => {
+
+        //For User
         if (formData.ticket_for) {
             const fetch = async () => {
                 try {
@@ -211,6 +213,7 @@ export default function ViewHDTicket() {
             };
             fetch();
         }
+        //For HD
         if (formData.assigned_to) {
             const fetchHDUser = async () => {
                 try {

@@ -15,7 +15,11 @@ const MaterialIcon = lazy(() => import('../views/ui-elements/icons/Material'));
 const Register = lazy(() => import('views/auth/register'))
 const Dashboard = lazy(() => import('views/dashboard'));
 const Assets = lazy(() => import('views/assets'))
-const Announcements = lazy(() => import('views/pages/announcements'));
+
+const Announcements = lazy(() => import('views/announcements'));
+const InActiveAnnouncement = lazy(() => import('views/announcements/inactiveannouncement'));
+
+
 const Knowledgebase = lazy(() => import('views/pages/knowledgebase'));
 const Reports = lazy(() => import('views/pages/reports'));
 
@@ -104,6 +108,10 @@ const MainRoutes = {
     {
       path: '/announcements',
       element: withSpinner(<Announcements />)
+    },
+    {
+      path: '/inactive-announcements',
+      element: withSpinner(<InActiveAnnouncement />)
     },
     {
       path: '/knowledgebase',
