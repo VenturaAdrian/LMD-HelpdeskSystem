@@ -663,7 +663,7 @@ export default function ViewHDTicket() {
                                     <option value="escalate2">Escalate Tier II</option>
                                     <option value="escalate3">Escalate Tier III</option>
                                     <option value="resolved">Resolve</option>
-                                    <option value="closed">Close</option>
+                                    <option value="closed" hidden>Close</option>
                                     <option value="re-opened" hidden>Re Open</option>
                                 </Form.Select>
                             </Form.Group>

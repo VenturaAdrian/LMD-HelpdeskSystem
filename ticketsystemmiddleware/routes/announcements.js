@@ -126,6 +126,35 @@ router.post('/update-anc', async (req, res) => {
     }
 })
 
+router.post('/reactivate-anc', async (req, res) => {
+    const currentTimestamp = new Date();
+    try {
+        const {
+            announcement_id,
+            updated_by
+        } = req.body;
+        console.log('ANNOUNCEMENT ID: ', announcement_id)
+
+        await knex('announcements_master').where({ announcements_id: announcement_id }).update({
+            updated_at: currentTimestamp,
+            is_active: 1,
+            updated_by
+        })
+
+        await knex('announcements_logs').insert({
+            announcements_id: announcement_id,
+            changes_made: `${updated_by} has re activated announcement.`,
+            created_at: currentTimestamp,
+            created_by: updated_by
+        })
+
+        res.json(200);
+        console.log('triggered /update-anc')
+    } catch (err) {
+        console.log("INTERNAL ERROR UNABLE TO UPDATE: ", err)
+    }
+})
+
 
 router.post('/delete-anc', async (req, res) => {
     const currentTimestamp = new Date();
@@ -148,6 +177,27 @@ router.post('/delete-anc', async (req, res) => {
         console.log('triggered /delete-anc')
     } catch (err) {
         console.log("INTERNAL ERROR UNABLE TO DELETE: ", err)
+    }
+})
+
+router.post('/perma-delete-anc', async (req, res) => {
+    try {
+        const currentTimestamp = new Date();
+        const { announcement_id, updated_by } = req.body;
+        console.log('DELETED ANNOUNCEMENT: ', announcement_id);
+
+        await knex('announcements_logs').insert({
+            announcements_id: announcement_id,
+            changes_made: `${updated_by} has permanently deleted announcement.`,
+            created_at: currentTimestamp,
+            created_by: updated_by
+        });
+
+        await knex('announcements_master').where({ announcements_id: announcement_id }).del();
+        res.json(200);
+        console.log('triggered /perma-delete-anc')
+    } catch (err) {
+        console.log('INTERNAL ERROR : ', err)
     }
 })
 

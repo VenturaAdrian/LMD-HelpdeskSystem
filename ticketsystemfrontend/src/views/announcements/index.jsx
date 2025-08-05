@@ -18,6 +18,28 @@ export default function Announcements() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const announcementsPerPage = 5;
+
+    // Pagination logic
+    const indexOfLast = currentPage * announcementsPerPage;
+    const indexOfFirst = indexOfLast - announcementsPerPage;
+    const currentAnnouncements = announcementsList.slice(indexOfFirst, indexOfLast);
+
+    const totalPages = Math.ceil(announcementsList.length / announcementsPerPage);
+
+    const [access, setAccess] = useState(false);
+
+    useEffect(() => {
+        const empInfo = JSON.parse(localStorage.getItem("user"));
+
+        if (['tier1', 'tier2', 'tier3'].includes(empInfo.emp_tier)) {
+            setAccess(true)
+        } else if (empInfo.emp_tier === 'none') {
+            setAccess(false)
+        }
+    })
+
     useEffect(() => {
         const fetchAnnouncements = async () => {
             try {
@@ -139,6 +161,7 @@ export default function Announcements() {
                 background: 'linear-gradient(to bottom, #ffe798ff, #b8860b)',
                 minHeight: '100vh',
                 paddingTop: '100px',
+                paddingBottom: '20px'
             }}
         >
 
@@ -152,80 +175,124 @@ export default function Announcements() {
                     <Alert variant="success" onClose={() => setSuccess('')} dismissible>{success}</Alert>
                 </div>
             )}
-            <Row className="mb-3">
-                <Col>
-                    <div className="d-flex justify-content-end gap-2">
-                        <Button variant="secondary" onClick={HandleArchive}>Archive</Button>
-                        <Button variant="primary" onClick={HandleAdd}>+ Create Post</Button>
-                    </div>
-                </Col>
-            </Row>
+            {access &&
+                (
+                    <Row className="mb-3">
+                        <Col>
+                            <div className="d-flex justify-content-end gap-2">
+                                <Button variant="secondary" onClick={HandleArchive}>Archive</Button>
+                                <Button variant="primary" onClick={HandleAdd}>+ Create Post</Button>
+                            </div>
+                        </Col>
+                    </Row>
+                )}
+
 
             <div className="mt-4">
-                {announcementsList.map((item) => (
-                    <Card key={item.announcements_id} className="mb-4 shadow-sm" style={{ borderRadius: '15px' }}>
-                        <Card.Body>
-                            <div className="d-flex align-items-center justify-content-between mb-2">
-                                <div className="d-flex align-items-center">
-                                    <img
-                                        src="src/assets/images/user/avatar-2.jpg"
-                                        alt="Profile"
-                                        style={{
-                                            width: '40px',
-                                            height: '40px',
-                                            borderRadius: '50%',
-                                            objectFit: 'cover',
-                                            marginRight: '10px'
-                                        }}
-                                    />
-                                    <div>
-                                        <strong>
-                                            {fullname[item.created_by] || item.created_by || 'Unknown'}
-                                        </strong>
-                                        <br />
-                                        <small className="text-muted">
-                                            {new Date(item.created_at).toLocaleString()}
-                                        </small>
+                {announcementsList.length === 0 ? (
+                    <div
+                        className="d-flex justify-content-center align-items-center"
+                        style={{ minHeight: '200px' }}
+                    >
+                        <Card.Text style={{
+                            fontSize: '1.2rem',
+                            fontWeight: '500',
+                            textAlign: 'center'
+                        }}>
+                            NO ANNOUNCEMENTS
+                        </Card.Text>
+                    </div>
+                ) : (
+                    currentAnnouncements.map((item) => (
+                        <Card key={item.announcements_id} className="mb-4 shadow-sm" style={{ borderRadius: '15px' }}>
+                            <Card.Body>
+                                <div className="d-flex align-items-center justify-content-between mb-2">
+                                    <div className="d-flex align-items-center">
+                                        <img
+                                            src="src/assets/images/user/avatar-2.jpg"
+                                            alt="Profile"
+                                            style={{
+                                                width: '40px',
+                                                height: '40px',
+                                                borderRadius: '50%',
+                                                objectFit: 'cover',
+                                                marginRight: '10px'
+                                            }}
+                                        />
+                                        <div>
+                                            <strong>
+                                                {fullname[item.created_by] || item.created_by || 'Unknown'}
+                                            </strong>
+                                            <br />
+                                            <small className="text-muted">
+                                                {new Date(item.created_at).toLocaleString()}
+                                            </small>
+                                        </div>
                                     </div>
-                                </div>
+                                    {access && (
+                                        <div onClick={() => {
+                                            setAncId(item.announcements_id === ancId ? null : item.announcements_id);
+                                        }}>
+                                            <i className="bi bi-three-dots" style={{ cursor: 'pointer' }}></i>
 
-                                <div onClick={() => {
-                                    setAncId(item.announcements_id === ancId ? null : item.announcements_id);
-                                }}>
-                                    <i className="bi bi-three-dots" style={{ cursor: 'pointer' }}></i>
-
-                                    {ancId === item.announcements_id && (
-                                        <div
-                                            className="position-absolute bg-white border rounded shadow-sm"
-                                            style={{ top: '20px', right: '0', zIndex: 1000, minWidth: '100px' }}
-                                        >
-                                            <div
-                                                className="p-2 text-dark border-bottom"
-                                                style={{ cursor: 'pointer' }}
-                                                onClick={() => handleEditClick(item)}
-                                            >
-                                                Edit
-                                            </div>
-                                            <div
-                                                className="p-2 text-danger"
-                                                style={{ cursor: 'pointer' }}
-                                                onClick={() => {
-                                                    handleDelete(item.announcements_id);
-                                                }}
-                                            >
-                                                Delete
-                                            </div>
+                                            {ancId === item.announcements_id && (
+                                                <div
+                                                    className="position-absolute bg-white border rounded shadow-sm"
+                                                    style={{ top: '20px', right: '0', zIndex: 1000, minWidth: '100px' }}
+                                                >
+                                                    <div
+                                                        className="p-2 text-dark border-bottom"
+                                                        style={{ cursor: 'pointer' }}
+                                                        onClick={() => handleEditClick(item)}
+                                                    >
+                                                        Edit
+                                                    </div>
+                                                    <div
+                                                        className="p-2 text-danger"
+                                                        style={{ cursor: 'pointer' }}
+                                                        onClick={() => {
+                                                            handleDelete(item.announcements_id);
+                                                        }}
+                                                    >
+                                                        Archive
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                                <Card.Text style={{ fontSize: '1.1rem' }}>
+                                    {item.announcements}
+                                </Card.Text>
+                            </Card.Body>
 
-                            <Card.Text style={{ fontSize: '1.1rem' }}>
-                                {item.announcements}
-                            </Card.Text>
-                        </Card.Body>
-                    </Card>
-                ))}
+                        </Card>
+                    )))}
+                {totalPages > 1 && (
+                    <div className="d-flex justify-content-center mt-3">
+                        <Button
+                            variant="miColor"
+                            size="sm"
+                            className="me-2"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Prev
+                        </Button>
+                        <span className="align-self-center">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <Button
+                            variant="miColor"
+                            size="sm"
+                            className="ms-2"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {showCard && (

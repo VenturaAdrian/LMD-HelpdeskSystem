@@ -33,7 +33,8 @@ export default function History() {
 
                 // Closed tickets for the user
                 const userClosedTickets = allTickets.filter(ticket =>
-                    ticket.ticket_for === userData.user_name && ticket.ticket_status === 'closed'
+                    ticket.ticket_for === userData.user_name &&
+                    (ticket.ticket_status === 'closed' || ticket.is_reviewed === true)
                 );
                 setTicketsFor(userClosedTickets);
 

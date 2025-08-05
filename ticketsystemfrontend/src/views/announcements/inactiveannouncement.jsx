@@ -18,6 +18,16 @@ export default function InActiveAnnouncement() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const announcementsPerPage = 5;
+
+    // Pagination logic
+    const indexOfLast = currentPage * announcementsPerPage;
+    const indexOfFirst = indexOfLast - announcementsPerPage;
+    const currentAnnouncements = announcementsList.slice(indexOfFirst, indexOfLast);
+
+    const totalPages = Math.ceil(announcementsList.length / announcementsPerPage);
+
     useEffect(() => {
         const fetchAnnouncements = async () => {
             try {
@@ -46,12 +56,6 @@ export default function InActiveAnnouncement() {
         fetchAnnouncements();
     }, []);
 
-    const HandleAdd = () => {
-        setShowCard(true);
-        setIsEditing(false);
-        setAnnouncementText('');
-    };
-
     const HandleSave = async () => {
         const empInfo = JSON.parse(localStorage.getItem("user"));
 
@@ -74,26 +78,16 @@ export default function InActiveAnnouncement() {
         }
     };
 
-    const handleEditClick = (announcement) => {
-        console.log("Editing announcement:", announcement);
-        setAnnouncementText(announcement.announcements);
-        setEditId(announcement.announcements_id);
-        setIsEditing(true);
-        setShowCard(true);
-        setAncId(null);
-    };
-
-    const handleUpdate = async () => {
+    const handleEditClick = async (announcement) => {
+        console.log(announcement.announcements_id)
         const empInfo = JSON.parse(localStorage.getItem("user"));
-        console.log("Updating announcement with ID:", editId, "Text:", announcementText, "User:", empInfo.user_name);
         try {
-            await axios.post(`${config.baseApi}/announcements/update-anc`, {
-                announcement_id: editId,
-                announcements: announcementText,
+            await axios.post(`${config.baseApi}/announcements/reactivate-anc`, {
+                announcement_id: announcement.announcements_id,
                 updated_by: empInfo.user_name
             });
 
-            setSuccess("Announcement updated successfully!");
+            setSuccess("Announcement Re-activated successfully!");
 
             setAnnouncementText('');
             setShowCard(false);
@@ -105,7 +99,14 @@ export default function InActiveAnnouncement() {
             console.log('Unable to update announcement:', err);
             setError("Failed to update announcement.");
         }
+
+
+        console.log("Editing announcement:", announcement);
+
+        setAncId(null);
     };
+
+
 
     const handleDelete = async (announcementId) => {
         const empInfo = JSON.parse(localStorage.getItem("user"));
@@ -113,7 +114,7 @@ export default function InActiveAnnouncement() {
             return;
         }
         try {
-            await axios.post(`${config.baseApi}/announcements/delete-anc`, {
+            await axios.post(`${config.baseApi}/announcements/perma-delete-anc`, {
                 announcement_id: announcementId,
                 updated_by: empInfo.user_name
             });
@@ -128,8 +129,8 @@ export default function InActiveAnnouncement() {
         }
     }
 
-    const HandleArchive = () => {
-        window.location.replace('/ticketsystem/inactive-announcements');
+    const HandleAnnouncements = () => {
+        window.location.replace('/ticketsystem/announcements');
     }
 
     return (
@@ -140,9 +141,9 @@ export default function InActiveAnnouncement() {
                 background: 'linear-gradient(to bottom, #ffe798ff, #b8860b)',
                 minHeight: '100vh',
                 paddingTop: '100px',
+                paddingBottom: '20px'
             }}
         >
-
             {error && (
                 <div className="position-fixed start-50 translate-middle-x" style={{ top: '100px', zIndex: 9999, minWidth: '300px' }}>
                     <Alert variant="danger" onClose={() => setError('')} dismissible>{error}</Alert>
@@ -157,15 +158,14 @@ export default function InActiveAnnouncement() {
             <Row className="mb-3">
                 <Col>
                     <div className="d-flex justify-content-end gap-2">
-                        <Button variant="secondary" onClick={HandleArchive}>Archive</Button>
-                        <Button variant="primary" onClick={HandleAdd}>+ Create Post</Button>
+                        <Button variant="secondary" onClick={HandleAnnouncements}>Announcements</Button>
                     </div>
                 </Col>
             </Row>
 
 
             <div className="mt-4">
-                {announcementsList.map((item) => (
+                {currentAnnouncements.map((item) => (
                     <Card key={item.announcements_id} className="mb-4 shadow-sm" style={{ borderRadius: '15px' }}>
                         <Card.Body>
                             <div className="d-flex align-items-center justify-content-between mb-2">
@@ -207,7 +207,7 @@ export default function InActiveAnnouncement() {
                                                 style={{ cursor: 'pointer' }}
                                                 onClick={() => handleEditClick(item)}
                                             >
-                                                Edit
+                                                Re activate
                                             </div>
                                             <div
                                                 className="p-2 text-danger"
@@ -229,47 +229,36 @@ export default function InActiveAnnouncement() {
                         </Card.Body>
                     </Card>
                 ))}
+
+
+                {totalPages > 1 && (
+                    <div className="d-flex justify-content-center mt-3">
+                        <Button
+                            variant="miColor"
+                            size="sm"
+                            className="me-2"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Prev
+                        </Button>
+                        <span className="align-self-center">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <Button
+                            variant="miColor"
+                            size="sm"
+                            className="ms-2"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                )}
             </div>
 
-            {showCard && (
-                <Card className='announcement-card p-4 shadow' style={{ borderRadius: '15px', maxWidth: '600px', margin: '0 auto' }}>
-                    <Card.Title className="mb-3">
-                        {isEditing ? "Edit Announcement" : "Create Announcement"}
-                    </Card.Title>
-                    <Form>
-                        <Form.Group controlId="announcementText">
-                            <Form.Control
-                                as="textarea"
-                                rows={3}
-                                value={announcementText}
-                                onChange={(e) => setAnnouncementText(e.target.value)}
-                                placeholder="What's on your mind?"
-                            />
-                        </Form.Group>
 
-                        <div className="mt-3 d-flex justify-content-end">
-                            <Button
-                                variant="secondary"
-                                onClick={() => {
-                                    setShowCard(false);
-                                    setIsEditing(false);
-                                    setEditId(null);
-                                    setAnnouncementText('');
-                                }}
-                                className="me-2"
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                variant="primary"
-                                onClick={isEditing ? handleUpdate : HandleSave}
-                            >
-                                {isEditing ? "Update" : "Post"}
-                            </Button>
-                        </div>
-                    </Form>
-                </Card>
-            )}
         </Container>
     );
 }

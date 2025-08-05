@@ -37,7 +37,7 @@ $colors: (
   'gray-dark': $gray-800
 );
 // scss-docs-end colors-map
-
+$miColor: #00410c;
 $primary: #ffbb02; // change
 $secondary: $secondary; // change
 $success: $green; // change
@@ -48,6 +48,7 @@ $light: $gray-100; // change
 
 // scss-docs-start theme-colors-map
 $theme-colors: (
+  'miColor': $miColor,
   'primary': $primary,
   'secondary': $secondary,
   'success': $success,

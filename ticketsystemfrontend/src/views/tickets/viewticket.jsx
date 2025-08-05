@@ -20,6 +20,9 @@ export default function ViewTicket() {
     const [close, setClose] = useState(false);
     const [closureReason, setClosureReason] = useState('');
 
+    const [showCloseReviewModal, setShowCloseReviewModal] = useState(false);
+    const [userfeedback, setUserFeedback] = useState('');
+
     const [error, setError] = useState('');
     const [successful, setSuccessful] = useState('');
 
@@ -40,14 +43,6 @@ export default function ViewTicket() {
         }
     }, [error, successful]);
 
-    // Check if ticket status is closed
-    useEffect(() => {
-        if (formData.ticket_status === 'closed') {
-            setClose(false)
-        } else {
-            setClose(true)
-        }
-    }, [formData.ticket_status])
 
     // Fetch all notes for the ticket
     useEffect(() => {
@@ -86,12 +81,31 @@ export default function ViewTicket() {
                 const ticket = Array.isArray(fetchticket.data) ? fetchticket.data[0] : fetchticket.data;
                 setFormData(ticket);
                 setOriginalData(ticket);
+
             } catch (err) {
                 console.error('Error fetching data:', err);
             }
         };
         fetchData();
     }, [ticket_id]);
+
+
+    // Check if ticket status is closed
+    useEffect(() => {
+        if (formData.ticket_status === 'closed') {
+            setClose(false)
+        } else {
+            setClose(true)
+        }
+
+        if (hasChanges === false && formData.ticket_status === 'closed' && formData.is_reviewed === false) {
+            setShowCloseReviewModal(true)
+        } else {
+            setShowCloseReviewModal(false)
+        }
+
+    }, [formData.ticket_status])
+
 
     // Fetch current user data from local storage
     useEffect(() => {
@@ -162,10 +176,11 @@ export default function ViewTicket() {
         if (formData.ticket_status === 'closed') {
             setShowCloseReasonModal(true);
         } else {
-
             await handleSave();
         }
     }
+
+
 
     //Close tikcet function
     const handleConfirmClosure = async (e) => {
@@ -190,6 +205,7 @@ export default function ViewTicket() {
             setClose(false);
 
             await handleSave();
+            setShowCloseReviewModal(true);
             setSuccessful('Ticket closed successfully.');
         } catch (err) {
             console.log(err);
@@ -199,6 +215,33 @@ export default function ViewTicket() {
 
         }
     }
+
+
+
+
+    const handleReview = async () => {
+        const empInfo = JSON.parse(localStorage.getItem('user'));
+        console.log('was triggered. ', `Review ${userfeedback} HelpDesk: ${hdUser.user_id} Reviewed by: ${empInfo.user_name}`)
+
+        if (formData.ticket_status === 'closed') {
+            try {
+                await axios.post(`${config.baseApi}/ticket/feedback`, {
+                    review: userfeedback,
+                    user_id: hdUser.user_id,
+                    created_by: empInfo.user_name,
+                    ticket_id: formData.ticket_id
+                })
+                setShowCloseReviewModal(false);
+                setUserFeedback('');
+                window.location.reload();
+            } catch (err) {
+                console.log('Unable to submit review: ', err)
+            }
+        }
+    }
+
+
+
     //Save updated fields
     const handleSave = async () => {
         try {
@@ -216,6 +259,8 @@ export default function ViewTicket() {
             const changesMade = changedFields.length > 0 ? changedFields.join('; ') : '';
 
             console.log(changesMade)
+
+
             const dataToSend = new FormData();
             dataToSend.append('ticket_id', formData.ticket_id);
             dataToSend.append('ticket_subject', formData.ticket_subject);
@@ -243,6 +288,7 @@ export default function ViewTicket() {
                     current_user: currentUserData.user_name,
                     ticket_id: ticket_id
                 });
+
             }
 
             // Send notification to HD
@@ -257,11 +303,17 @@ export default function ViewTicket() {
                 }
             });
 
-            setSuccessful('Ticket updated successfully.');
-            setOriginalData(formData);
-            setHasChanges(false);
-            window.location.reload()
+            if (formData.ticket_status === 'closed') {
+                setSuccessful('Ticket updated successfully.');
+                setOriginalData(formData);
+                setHasChanges(false);
+            } else {
+                setSuccessful('Ticket updated successfully.');
+                setOriginalData(formData);
+                setHasChanges(false);
 
+                window.location.reload()
+            }
 
 
         } catch (err) {
@@ -269,6 +321,10 @@ export default function ViewTicket() {
             setError('Failed to update ticket.');
         }
     };
+
+
+
+
 
     //Display the files uploaded
     const renderAttachment = () => {
@@ -335,6 +391,7 @@ export default function ViewTicket() {
             <Container className="bg-white p-4 rounded-3 shadow-sm">
                 <Row>
                     <Col lg={8}>
+                        {/* Buttons */}
                         <Row className="mb-3">
                             <div className="d-flex justify-content-between align-items-center">
                                 <h3 className="fw-bold text-dark mb-0">Ticket Details</h3>
@@ -552,6 +609,7 @@ export default function ViewTicket() {
                         </Card>
                     </Col>
                 </Row>
+                {/* CLOSE TICKET */}
                 <Modal show={showCloseReasonModal} onHide={() => setShowCloseReasonModal(false)} centered>
                     <Modal.Header closeButton>
                         <Modal.Title>Reason for Closing Ticket</Modal.Title>
@@ -576,6 +634,37 @@ export default function ViewTicket() {
                             variant="primary"
                             onClick={handleConfirmClosure}
                             disabled={closureReason.trim() === ''}
+                        >
+                            Confirm
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+
+                {/* Review Ticket */}
+                <Modal show={showCloseReviewModal} onHide={() => setShowCloseReviewModal(false)} centered>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Leave a Feedback (Required)</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form.Group controlId="userfeedback">
+                            <Form.Label>How was our service?</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                value={userfeedback}
+                                onChange={(e) => setUserFeedback(e.target.value)}
+                                placeholder="Your feedback will help us to improve our service"
+                            />
+                        </Form.Group>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setShowCloseReasonModal(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={handleReview}
+                            disabled={userfeedback.trim() === ''}
                         >
                             Confirm
                         </Button>

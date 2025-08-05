@@ -120,6 +120,9 @@ const Tickets = db.define('ticket_master', {
     is_active: {
         type: DataTypes.STRING,
     },
+    is_reviewed: {
+        type: DataTypes.STRING,
+    },
     ticket_for: {
         type: DataTypes.STRING,
     },
@@ -351,6 +354,11 @@ router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
                 resolved_by: updated_by
             })
         }
+        if (ticket_status === 're-opened') {
+            await knex('ticket_master').where('ticket_id', ticket_id).update({
+                is_reviewed: false
+            })
+        }
 
         await knex('ticket_logs').insert({
             ticket_id,
@@ -387,7 +395,8 @@ router.post('/update-accept-ticket', async (req, res, next) => {
                 assigned_group: empInfo.emp_tier,
                 updated_at: currentTimestamp,
                 responded_at: currentTimestamp,
-                ticket_status: 're-opened'
+                ticket_status: 're-opened',
+                is_reviewed: false
             })
 
             await knex('ticket_logs').insert({
@@ -501,5 +510,24 @@ router.get('/get-all-notes/:ticket_id', async (req, res, next) => {
     }
 })
 
+router.post('/feedback', async (req, res) => {
+    const currentTimestamp = new Date();
+    try {
 
+        const { review, user_id, created_by, ticket_id } = req.body;
+
+        await knex('review_master').insert({
+            review,
+            user_id,
+            created_at: currentTimestamp,
+            created_by,
+        })
+        await knex('ticket_master').where({ ticket_id: ticket_id }).update({
+            is_reviewed: true
+        });
+        res.json(200);
+    } catch (err) {
+        console.log('INTERNAL ERROR: ', err)
+    }
+})
 module.exports = router;
