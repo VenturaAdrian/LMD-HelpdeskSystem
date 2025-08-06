@@ -205,6 +205,7 @@ router.get('/get-all-ticket', async (req, res) => {
     }
 })
 
+
 router.post('/notified-true', async (req, res) => {
     try {
         const { ticket_id, user_id } = req.body;
@@ -509,6 +510,17 @@ router.get('/get-all-notes/:ticket_id', async (req, res, next) => {
         console.log('INTERNAL ERROR: ', err)
     }
 })
+router.get('/get-all-feedback/:ticket_id', async (req, res) => {
+    try {
+        const ticket_id = req.params.ticket_id;
+        const feedback = await knex('review_master').where({ ticket_id })
+            .orderBy('created_at', 'user_id', 'review');
+        res.json(feedback);
+        console.log('triggered /get-all-feedback/:ticket_id');
+    } catch (err) {
+        console.log('INTERNAL ERROR: ', err)
+    }
+})
 
 router.post('/feedback', async (req, res) => {
     const currentTimestamp = new Date();
@@ -521,6 +533,7 @@ router.post('/feedback', async (req, res) => {
             user_id,
             created_at: currentTimestamp,
             created_by,
+            ticket_id
         })
         await knex('ticket_master').where({ ticket_id: ticket_id }).update({
             is_reviewed: true

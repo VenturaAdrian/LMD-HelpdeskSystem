@@ -1,8 +1,9 @@
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from 'react-icons/fa';
 import { useEffect, useState } from "react";
-import { Container, Row, Col, Form, Card, Button, Modal, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Form, Card, Button, Modal, Alert, InputGroup } from 'react-bootstrap';
 import axios from 'axios';
 import config from 'config';
+import FeatherIcon from 'feather-icons-react';
 
 export default function ViewTicket() {
     const [formData, setFormData] = useState({});
@@ -11,6 +12,7 @@ export default function ViewTicket() {
     const [ticketForData, setTicketForData] = useState({});
     const [currentUserData, setCurrentUserData] = useState({});
     const [hdUser, setHDUser] = useState({});
+    const [tier, setTier] = useState('')
     const ticket_id = new URLSearchParams(window.location.search).get('id');
 
     const [allnotes, setAllNotes] = useState([]);
@@ -85,6 +87,14 @@ export default function ViewTicket() {
             } catch (err) {
                 console.error('Error fetching data:', err);
             }
+
+            if (formData.assigned_group === 'tier1') {
+                setTier('Tier 1')
+            } else if (formData.assigned_group === 'tier2') {
+                setTier('Tier 2')
+            } else if (formData.assigned_group === 'tier3') {
+                setTier('Tier 3')
+            }
         };
         fetchData();
     }, [ticket_id]);
@@ -94,15 +104,19 @@ export default function ViewTicket() {
     useEffect(() => {
         if (formData.ticket_status === 'closed') {
             setClose(false)
-        } else {
+        } else if (formData.ticket_status === 'resolved') {
+            setClose(false)
+        }
+        else {
             setClose(true)
         }
 
-        if (hasChanges === false && formData.ticket_status === 'closed' && formData.is_reviewed === false) {
+        if (hasChanges === false && formData.ticket_status === 'closed' && (formData.is_reviewed === false || formData.is_reviewed === null)) {
             setShowCloseReviewModal(true)
         } else {
             setShowCloseReviewModal(false)
         }
+
 
     }, [formData.ticket_status])
 
@@ -422,38 +436,68 @@ export default function ViewTicket() {
 
                         <h6 className="text-muted fw-semibold mt-4 mb-2">Details</h6>
                         <Row>
-                            <Form.Group as={Col} md={6} className="mb-2">
+                            <Col md={6} className="mb-2">
                                 <Form.Label>Created By</Form.Label>
-                                <Form.Control name="created_by" value={formData.created_by || '-'} disabled />
-                            </Form.Group>
-                            <Form.Group as={Col} md={6} className="mb-2">
+                                <InputGroup>
+                                    <InputGroup.Text>
+                                        <FeatherIcon icon="user" />
+                                    </InputGroup.Text>
+                                    <Form.Control name="created_by" value={formData.created_by || '-'} disabled />
+                                </InputGroup>
+                            </Col>
+                            <Col md={6} className="mb-2">
                                 <Form.Label>Employee</Form.Label>
-                                <Form.Control value={ticketForData.emp_FirstName + " " + ticketForData.emp_LastName || ''} disabled />
-                            </Form.Group>
-                            <Form.Group as={Col} md={6} className="mb-2">
+                                <InputGroup>
+                                    <InputGroup.Text>
+                                        <FeatherIcon icon="user" />
+                                    </InputGroup.Text>
+                                    <Form.Control value={ticketForData.emp_FirstName + " " + ticketForData.emp_LastName || ''} disabled />
+                                </InputGroup>
+                            </Col>
+                            <Col md={6} className="mb-2">
                                 <Form.Label>Department</Form.Label>
-                                <Form.Control value={ticketForData.emp_department || ''} disabled />
-                            </Form.Group>
-                            <Form.Group as={Col} md={6} className="mb-2">
+                                <InputGroup>
+                                    <InputGroup.Text>
+                                        <FeatherIcon icon="briefcase" />
+                                    </InputGroup.Text>
+                                    <Form.Control value={ticketForData.emp_department || ''} disabled />
+                                </InputGroup>
+                            </Col>
+                            <Col md={6} className="mb-2">
                                 <Form.Label>Position</Form.Label>
-                                <Form.Control value={ticketForData.emp_position || ''} disabled />
-                            </Form.Group>
-                            <Form.Group as={Col} md={6} className="mb-2">
+                                <InputGroup>
+                                    <InputGroup.Text>
+                                        <FeatherIcon icon="activity" />
+                                    </InputGroup.Text>
+                                    <Form.Control value={ticketForData.emp_position || ''} disabled />
+                                </InputGroup>
+                            </Col>
+                            <Col md={6} className="mb-2">
                                 <Form.Label>Assigned To</Form.Label>
-                                <Form.Control
-                                    name="assigned_to"
-                                    value={
-                                        hdUser?.emp_FirstName && hdUser?.emp_LastName
-                                            ? `${hdUser.emp_FirstName} ${hdUser.emp_LastName}`
-                                            : '-'
-                                    }
-                                    disabled
-                                />
-                            </Form.Group>
-                            <Form.Group as={Col} md={6} className="mb-2">
+                                <InputGroup>
+                                    <InputGroup.Text>
+                                        <FeatherIcon icon="user" />
+                                    </InputGroup.Text>
+                                    <Form.Control
+                                        name="assigned_to"
+                                        value={
+                                            hdUser?.emp_FirstName && hdUser?.emp_LastName
+                                                ? `${hdUser.emp_FirstName} ${hdUser.emp_LastName}`
+                                                : '-'
+                                        }
+                                        disabled
+                                    />
+                                </InputGroup>
+                            </Col>
+                            <Col md={6} className="mb-2">
                                 <Form.Label>Assigned Group</Form.Label>
-                                <Form.Control name="assigned_group" value={formData.assigned_group || '-'} disabled />
-                            </Form.Group>
+                                <InputGroup>
+                                    <InputGroup.Text>
+                                        <FeatherIcon icon="users" />
+                                    </InputGroup.Text>
+                                    <Form.Control name="assigned_group" value={tier || '-'} disabled />
+                                </InputGroup>
+                            </Col>
                         </Row>
 
                         <h6 className="text-muted fw-semibold mt-4 mb-2">Request Info</h6>

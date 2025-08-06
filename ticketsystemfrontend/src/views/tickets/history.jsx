@@ -33,8 +33,8 @@ export default function History() {
 
                 // Closed tickets for the user
                 const userClosedTickets = allTickets.filter(ticket =>
-                    ticket.ticket_for === userData.user_name &&
-                    (ticket.ticket_status === 'closed' || ticket.is_reviewed === true)
+                    ticket.ticket_for === userData.user_name && ticket.is_reviewed === true
+
                 );
                 setTicketsFor(userClosedTickets);
 
@@ -47,7 +47,9 @@ export default function History() {
                 //Filter duplicated id's
                 const uniqueIds = [...new Set(createdNotes.map(note => note.ticket_id))];
                 // Filter the users worked tickets based on the notes
-                const worked = allTickets.filter(ticket => uniqueIds.includes(ticket.ticket_id));
+                const worked = allTickets.filter(ticket => uniqueIds.includes(ticket.ticket_id) || ticket.is_reviewed === true);
+
+
                 setWorkedTickets(worked);
 
                 // Final filtering

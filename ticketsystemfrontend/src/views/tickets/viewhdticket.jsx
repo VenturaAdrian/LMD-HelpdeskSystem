@@ -1,9 +1,10 @@
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from 'react-icons/fa';
 import { useEffect, useState } from "react";
-import { Container, Row, Col, Form, Card, Button, Alert, FormSelect } from 'react-bootstrap';
+import { Container, Row, Col, Form, Card, Button, Alert, FormSelect, Modal, InputGroup } from 'react-bootstrap';
 import axios from 'axios';
 import config from 'config';
 import Select from 'react-select';
+import FeatherIcon from 'feather-icons-react';
 
 export default function ViewHDTicket() {
     const [formData, setFormData] = useState({});
@@ -26,6 +27,13 @@ export default function ViewHDTicket() {
     const [error, setError] = useState('');
     const [successful, setSuccessful] = useState('');
 
+
+    const [allfeedback, setAllFeedback] = useState([])
+    const [feedbackuser, setFeedBackUser] = useState('')
+
+    const [showCloseResolutionModal, setShowCloseResolutionModal] = useState(false);
+    const [resolution, setResolution] = useState('');
+
     const ticket_id = new URLSearchParams(window.location.search).get('id');
 
     const subCategoryOptions = {
@@ -37,7 +45,9 @@ export default function ViewHDTicket() {
     const customSelectStyles = {
         control: (provided, state) => ({
             ...provided,
-            border: state.isFocused ? '2px solid #fdc10dff' : '2px solid ' + provided.borderColor,
+            width: '100%',
+            height: '43px',
+            border: state.isFocused ? '2px solid #fdc10dff' : `2px solid ${provided.borderColor}`,
             boxShadow: state.isFocused ? '1px rgba(253, 169, 13, 1)' : provided.boxShadow,
             '&:hover': { borderColor: '#fdc10dff' },
         }),
@@ -169,14 +179,18 @@ export default function ViewHDTicket() {
     useEffect(() => {
         const empInfo = JSON.parse(localStorage.getItem('user'));
         const fetchNotes = async () => {
+            //Open HD Add Note Function
             if (formData.ticket_status === 'in-progress' && formData.assigned_to === empInfo.user_name) {
                 setHDNotesState(true)
             }
 
+
             try {
+                //Get all notes
                 const response = await axios.get(`${config.baseApi}/ticket/get-all-notes/${ticket_id}`);
                 setAllNotes(response.data);
 
+                //Get all notes by their username
                 const usernames = response.data.map(note => note.created_by)
 
                 const responses = await axios.get(`${config.baseApi}/authentication/get-all-notes-usernames`, {
@@ -189,12 +203,33 @@ export default function ViewHDTicket() {
                     userMap[user.user_name] = `${user.emp_FirstName} ` + ' ' + `${user.emp_LastName}`;
                 });
                 setnoteofhduser(userMap)
+
+
+                //get all feedback
+                const allfeedback = await axios.get(`${config.baseApi}/ticket/get-all-feedback/${ticket_id}`);
+                setAllFeedback(allfeedback.data);
+
+                //User data base on their user_id
+                const feedbackusername = allfeedback.data.map(user => user.user_id);
+                console.log(feedbackusername)
+                const feedbackRes = await axios.get(`${config.baseApi}/authentication/get-all-by-id`, {
+                    params: { user_id: JSON.stringify(feedbackusername) }
+                });
+                console.log(feedbackRes.data)
+                //settin up full nmae by their user_id
+                const alluserMap = {}
+                feedbackRes.data.forEach(user => {
+                    alluserMap[user.user_id] = `${user.emp_FirstName}` + ' ' + `${user.emp_LastName}`;
+                });
+                setFeedBackUser(alluserMap)
+
+
             } catch (err) {
                 console.log('UNABLE TO FETCH ALL NOTES: ', err)
             }
         }
         fetchNotes();
-    }, [formData.ticket_status, ticket_id])
+    }, [formData.ticket_status, ticket_id, formData.is_reviewed])
 
     //Get user from ticket
     useEffect(() => {
@@ -337,6 +372,39 @@ export default function ViewHDTicket() {
         });
     };
 
+    const handleChecker = async () => {
+        if (formData.ticket_status === 'resolved') {
+            setShowCloseResolutionModal(true)
+        } else (
+            handleSave()
+        )
+    }
+
+    const HandleResolution = async (e) => {
+        e.preventDefault();
+
+        const empInfo = JSON.parse(localStorage.getItem('user'));
+        try {
+            await axios.post(`${config.baseApi}/ticket/note-post`, {
+                notes: resolution,
+                current_user: empInfo.user_name,
+                ticket_id: ticket_id
+            });
+
+            await axios.post(`${config.baseApi}/ticket/notified-true`, {
+                ticket_id: ticket_id,
+                user_id: empInfo.user_id
+            })
+
+            setResolution('');
+            console.log('Submitted a resolution succesfully');
+            handleSave();
+        } catch (err) {
+            console.log('Unable to save resolution note: ', err)
+        }
+
+    }
+
     const handleSave = async () => {
         try {
             console.log(formData.ticket_for)
@@ -387,7 +455,6 @@ export default function ViewHDTicket() {
             setSuccessful('Ticket updated successfully.');
             setOriginalData(formData);
             setHasChanges(false);
-
             window.location.reload();
         } catch (err) {
             console.error("Error updating ticket:", err);
@@ -486,7 +553,7 @@ export default function ViewHDTicket() {
                                             variant="primary"
                                             size="sm"
                                             style={{ width: '200px', minHeight: '40px' }}
-                                            onClick={handleSave}
+                                            onClick={handleChecker}
                                         >
                                             Save Changes
                                         </Button>
@@ -550,68 +617,98 @@ export default function ViewHDTicket() {
                         {/* USER DETAILS */}
                         <h6 className="text-muted fw-semibold mt-4 mb-2">Details</h6>
                         <Row>
-                            <Form.Group as={Col} md={6} className="mb-2">
+                            <Col md={6} className="mb-2">
                                 <Form.Label>Created By</Form.Label>
-                                <Form.Control
-                                    name="created_by"
-                                    value={formData.created_by ?? '-'}
-                                    disabled
-                                />
-                            </Form.Group>
-                            <Form.Group as={Col} md={6} className="mb-2">
+                                <InputGroup>
+                                    <InputGroup.Text>
+                                        <FeatherIcon icon="user" />
+                                    </InputGroup.Text>
+                                    <Form.Control name="created_by" value={formData.created_by || '-'} disabled />
+                                </InputGroup>
+                            </Col>
+                            <Col md={6} className="mb-2">
                                 <Form.Label>Employee</Form.Label>
-                                <Select
-                                    name="ticket_for"
-                                    value={
-                                        allUser.find(u => u.user_name === formData.ticket_for)
-                                            ? {
-                                                value: formData.ticket_for,
-                                                label: `${allUser.find(u => u.user_name === formData.ticket_for).emp_FirstName} ${allUser.find(u => u.user_name === formData.ticket_for).emp_LastName}`
+                                <InputGroup style={{ height: '43px' }}>
+                                    <InputGroup.Text>
+                                        <FeatherIcon icon="user" />
+                                    </InputGroup.Text>
+                                    <div style={{ flex: 1 }}>
+                                        <Select
+                                            name="ticket_for"
+                                            value={
+                                                allUser.find(u => u.user_name === formData.ticket_for)
+                                                    ? {
+                                                        value: formData.ticket_for,
+                                                        label: `${allUser.find(u => u.user_name === formData.ticket_for).emp_FirstName} ${allUser.find(u => u.user_name === formData.ticket_for).emp_LastName}`
+                                                    }
+                                                    : null
                                             }
-                                            : null
-                                    }
-                                    onChange={option => handleChange({ target: { name: 'ticket_for', value: option ? option.value : '' } })}
-                                    options={allUser.map(user => ({
-                                        value: user.user_name,
-                                        label: `${user.emp_FirstName} ${user.emp_LastName}`
-                                    }))}
-                                    isDisabled={!isEditable}
-                                    isClearable
-                                    placeholder="Select Employee"
-                                    styles={customSelectStyles}
-                                />
+                                            onChange={option =>
+                                                handleChange({
+                                                    target: {
+                                                        name: 'ticket_for',
+                                                        value: option ? option.value : ''
+                                                    }
+                                                })
+                                            }
+                                            options={allUser.map(user => ({
+                                                value: user.user_name,
+                                                label: `${user.emp_FirstName} ${user.emp_LastName}`
+                                            }))}
+                                            isDisabled={!isEditable}
+                                            isClearable
+                                            placeholder="Select Employee"
+                                            styles={customSelectStyles}
+                                            classNamePrefix="react-select"
+                                        />
+                                    </div>
+                                </InputGroup>
+                            </Col>
 
-                            </Form.Group>
-                            <Form.Group as={Col} md={6} className="mb-2">
+                            <Col md={6} className="mb-2">
                                 <Form.Label>Department</Form.Label>
-                                <Form.Control
-                                    value={ticketForData.emp_department ?? '-'}
-                                    disabled
-                                />
-                            </Form.Group>
-                            <Form.Group as={Col} md={6} className="mb-2">
+                                <InputGroup>
+                                    <InputGroup.Text>
+                                        <FeatherIcon icon="briefcase" />
+                                    </InputGroup.Text>
+                                    <Form.Control value={ticketForData.emp_department || ''} disabled />
+                                </InputGroup>
+                            </Col>
+                            <Col md={6} className="mb-2">
                                 <Form.Label>Position</Form.Label>
-                                <Form.Control
-                                    value={ticketForData.emp_position ?? ''}
-                                    disabled
-                                />
-                            </Form.Group>
-                            <Form.Group as={Col} md={6} className="mb-2">
+                                <InputGroup>
+                                    <InputGroup.Text>
+                                        <FeatherIcon icon="activity" />
+                                    </InputGroup.Text>
+                                    <Form.Control value={ticketForData.emp_position || ''} disabled />
+                                </InputGroup>
+                            </Col>
+                            <Col md={6} className="mb-2">
                                 <Form.Label>Assigned To</Form.Label>
-                                <Form.Control
-                                    name="assigned_to"
-                                    value={
-                                        hdUser?.emp_FirstName && hdUser?.emp_LastName
-                                            ? `${hdUser.emp_FirstName} ${hdUser.emp_LastName}`
-                                            : '-'
-                                    }
-                                    disabled
-                                />
-                            </Form.Group>
-                            <Form.Group as={Col} md={6} className="mb-2">
+                                <InputGroup>
+                                    <InputGroup.Text>
+                                        <FeatherIcon icon="user" />
+                                    </InputGroup.Text>
+                                    <Form.Control
+                                        name="assigned_to"
+                                        value={
+                                            hdUser?.emp_FirstName && hdUser?.emp_LastName
+                                                ? `${hdUser.emp_FirstName} ${hdUser.emp_LastName}`
+                                                : '-'
+                                        }
+                                        disabled
+                                    />
+                                </InputGroup>
+                            </Col>
+                            <Col md={6} className="mb-2">
                                 <Form.Label>Assigned Group</Form.Label>
-                                <Form.Control name="assigned_group" value={tier ?? '-'} disabled />
-                            </Form.Group>
+                                <InputGroup>
+                                    <InputGroup.Text>
+                                        <FeatherIcon icon="users" />
+                                    </InputGroup.Text>
+                                    <Form.Control name="assigned_group" value={tier || '-'} disabled />
+                                </InputGroup>
+                            </Col>
                         </Row>
 
                         {/* TICKET INFO */}
@@ -744,7 +841,7 @@ export default function ViewHDTicket() {
                     {/* HELP DESK NOTES */}
                     <Col lg={4}>
                         <h6 className="text-muted fw-semibold mb-2">Helpdesk Notes</h6>
-                        <Card className="shadow-sm border-0 h-100">
+                        <Card className="shadow-sm border-0 h-900">
                             <Card.Body>
                                 <Form.Group className="mb-3">
                                     <div
@@ -827,10 +924,92 @@ export default function ViewHDTicket() {
                                         </div>
                                     </>
                                 )}
+
+                                {/* USER FEEDBACK */}
+                                <h6 className="text-muted fw-semibold mb-2">User Feedback</h6>
+
+                                <Form.Group className="mb-2">
+                                    <div
+                                        style={{
+                                            maxHeight: '300px',
+                                            overflowY: 'auto',
+                                            paddingRight: '5px',
+                                        }}
+                                    >
+                                        {allfeedback && allfeedback.length > 0 ? (
+                                            [...allfeedback]
+                                                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                                                .map((feedback, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="mb-3 p-3 rounded-3 shadow-sm bg-body-tertiary border border-light-subtle"
+                                                    >
+                                                        <div
+                                                            className="text-dark"
+                                                            style={{
+                                                                fontSize: '0.95rem',
+                                                                whiteSpace: 'pre-wrap',
+                                                            }}
+                                                        >
+                                                            {feedback.review}
+                                                        </div>
+                                                        <div className="d-flex justify-content-between align-items-center mt-2">
+                                                            <small className="text-muted fst-italic">
+                                                                {feedbackuser[feedback.user_id] || feedback.user_id || 'Unknown'}
+                                                            </small>
+                                                            <small className="text-muted">
+                                                                {feedback.created_at
+                                                                    ? new Date(
+                                                                        feedback.created_at
+                                                                    ).toLocaleString()
+                                                                    : ''}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                        ) : (
+                                            <div className="text-muted fst-italic">
+                                                No notes available.
+                                            </div>
+                                        )}
+                                    </div>
+                                </Form.Group>
+
                             </Card.Body>
                         </Card>
                     </Col>
                 </Row>
+
+                {/*HD Resolution Ticket */}
+                <Modal show={showCloseResolutionModal} onHide={() => setShowCloseResolutionModal(false)} centered>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Resolution: (Required)</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form.Group controlId="userResolution">
+                            <Form.Label>How were you able to resolve?</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                value={resolution}
+                                onChange={(e) => setResolution(e.target.value)}
+                                placeholder="Enter your troubleshooting steps here"
+                            />
+                        </Form.Group>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setShowCloseResolutionModal(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={HandleResolution}
+                            disabled={resolution.trim() === ''}
+                        >
+                            Confirm
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
             </Container>
         </Container>
     );

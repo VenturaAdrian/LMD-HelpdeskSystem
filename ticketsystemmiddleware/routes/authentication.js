@@ -220,6 +220,22 @@ router.get('/get-all-notes-usernames', async (req, res) => {
   }
 });
 
+router.get('/get-all-by-id', async (req, res) => {
+  try {
+    const user_id = JSON.parse(req.query.user_id); // Convert string back to array
+    const users = await Users1.findAll({
+      where: {
+        user_id: { [Op.in]: user_id }
+      }
+    });
+    res.json(users);
+    console.log(users)
+  } catch (err) {
+    console.error('Error fetching multiple users:', err);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
 
 router.get('/get-all-notes', async (req, res) => {
   try {

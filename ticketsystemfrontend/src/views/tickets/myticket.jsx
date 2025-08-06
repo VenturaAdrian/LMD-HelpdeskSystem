@@ -40,7 +40,8 @@ export default function Myticket() {
                     //If HelpDeskUser has assigned ticket.
                 } else if (user.emp_tier === 'tier1' || user.emp_tier === 'tier2' || user.emp_tier === 'tier3') {
                     const userTickets = res.data.filter(
-                        (ticket) => ticket.assigned_to === userName
+                        (ticket) => ticket.assigned_to === userName &&
+                            (ticket.is_reviewed === false || ticket.is_reviewed === null)
                     );
                     setAllTicket(userTickets);
                 }
