@@ -26,6 +26,7 @@ export default function SignUp1() {
   const [tier, setTier] = useState('');
   const [role, setRole] = useState('');
   const [phone, setPhone] = useState('');
+  const [location, setLocation] = useState('')
   const [department, setDepartment] = useState('');
   const [position, setPosition] = useState('');
   const [error, setError] = useState('');
@@ -41,8 +42,14 @@ export default function SignUp1() {
   const tierRef = useRef();
   const roleRef = useRef();
   const phoneRef = useRef();
+  const locationRef = useRef();
   const departmentRef = useRef();
   const positionRef = useRef();
+
+  const departmentOptions = {
+    lmd: ['MISD', 'HR', 'IOSD', 'SMED', 'Mill', 'IMD', 'PCES', 'MOG', 'Accounting', 'Expolartion', 'Assay'],
+    corp: ['Legal', 'Accounting', 'Executive', 'HRAD', 'Treasury', 'MISD']
+  };
 
   useEffect(() => {
     if (error || successful) {
@@ -72,6 +79,7 @@ export default function SignUp1() {
       !tier &&
       !role &&
       !phone &&
+      !location &&
       !department &&
       !position) {
       setError('All fields are required!')
@@ -124,14 +132,19 @@ export default function SignUp1() {
       tierRef.current.focus();
       return;
     }
+    if (!phone) {
+      setError('Phone Number is required!');
+      phoneRef.current.focus();
+      return;
+    }
     if (!role) {
       setError('Role is required!');
       roleRef.current.focus();
       return;
     }
-    if (!phone) {
-      setError('Role is required!');
-      phoneRef.current.focus();
+    if (!location.trim()) {
+      setError('Location is required!');
+      locationRef.current.focus();
       return;
     }
     if (!department.trim()) {
@@ -157,6 +170,7 @@ export default function SignUp1() {
         emp_tier: tier,
         emp_role: role,
         emp_phone: phone,
+        emp_location: location,
         emp_department: department,
         emp_position: position,
         current_user: currentUser
@@ -176,9 +190,10 @@ export default function SignUp1() {
         setTier('')
         setRole('');
         setPhone('');
+        setLocation('')
         setDepartment('');
         setPosition('');
-
+        window.location.reload()
         console.log(`User ${username} was successfully registered`)
 
 
@@ -384,22 +399,43 @@ export default function SignUp1() {
                     </Form.Select>
                   </InputGroup>
 
-                  <Form.Label>Department</Form.Label>
-                  <InputGroup className="mb-3">
-                    <InputGroup.Text>
-                      <FeatherIcon icon="briefcase" />
-                    </InputGroup.Text>
-                    <Form.Select
-                      value={department}
-                      onChange={(e) => setDepartment(e.target.value)}
-                      ref={departmentRef}
-                    >
-                      <option value="">Select Department</option>
-                      <option value="MISD">MISD</option>
-                      <option value="Others">Others</option>
-                    </Form.Select>
-                  </InputGroup>
-
+                  <Row>
+                    <Col xs={12} sm={6} className="mb-2">
+                      <Form.Label>Location</Form.Label>
+                      <InputGroup className="mb-3">
+                        <InputGroup.Text>
+                          <FeatherIcon icon="globe" />
+                        </InputGroup.Text>
+                        <Form.Select
+                          value={location}
+                          onChange={(e) => setLocation(e.target.value)}
+                          ref={locationRef}
+                        >
+                          <option value="">Select Location</option>
+                          <option value="lmd">LMD</option>
+                          <option value="corp">Corp</option>
+                        </Form.Select>
+                      </InputGroup>
+                    </Col>
+                    <Col xs={12} sm={6} className="mb-2">
+                      <Form.Label>Department</Form.Label>
+                      <InputGroup className="mb-3">
+                        <InputGroup.Text>
+                          <FeatherIcon icon="briefcase" />
+                        </InputGroup.Text>
+                        <Form.Select
+                          value={department}
+                          onChange={(e) => setDepartment(e.target.value)}
+                          ref={departmentRef}
+                        >
+                          <option value="">Select Department</option>
+                          {departmentOptions[location]?.map((dept, idx) => (
+                            <option key={idx} value={dept}>{dept}</option>
+                          ))}
+                        </Form.Select>
+                      </InputGroup>
+                    </Col>
+                  </Row>
 
                   <Form.Label>Position</Form.Label>
                   <InputGroup className="mb-3">

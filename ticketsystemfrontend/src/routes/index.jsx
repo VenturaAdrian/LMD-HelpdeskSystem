@@ -10,10 +10,10 @@ const AuthLogin = lazy(() => import('../views/auth/login'))
 
 const router = createBrowserRouter(
   [
-   AuthenticationRoutes,
+    AuthenticationRoutes,
     {
-      path:'/',
-      element:<AuthLogin/>
+      path: '/',
+      element: <AuthLogin />
     },
     MainRoutes
   ],

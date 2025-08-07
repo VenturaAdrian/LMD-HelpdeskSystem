@@ -47,7 +47,9 @@ export default function History() {
                 //Filter duplicated id's
                 const uniqueIds = [...new Set(createdNotes.map(note => note.ticket_id))];
                 // Filter the users worked tickets based on the notes
-                const worked = allTickets.filter(ticket => uniqueIds.includes(ticket.ticket_id) || ticket.is_reviewed === true);
+                const worked = allTickets.filter(ticket => uniqueIds.includes(ticket.ticket_id) || ticket.is_reviewed === true || (ticket.assigned_collaborators === userData.user_name &&
+                    ticket.assigned_collaborators.split(',').includes(userData.user_name)));
+
 
 
                 setWorkedTickets(worked);

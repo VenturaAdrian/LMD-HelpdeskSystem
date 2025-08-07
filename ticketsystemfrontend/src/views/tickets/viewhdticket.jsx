@@ -13,7 +13,11 @@ export default function ViewHDTicket() {
     const [ticketForData, setTicketForData] = useState({});
     const [hdUser, setHDUser] = useState({});
     const [allUser, setAllUser] = useState([]);
+    const [allHDUser, setAllHDUser] = useState([]);
+
     const [tier, setTier] = useState('');
+    const [location, setLocation] = useState('');
+
     const [isEditable, setIsEditable] = useState(false);
     const [showAcceptButton, setShowAcceptButton] = useState(false);
 
@@ -27,13 +31,14 @@ export default function ViewHDTicket() {
     const [error, setError] = useState('');
     const [successful, setSuccessful] = useState('');
 
-
     const [allfeedback, setAllFeedback] = useState([])
     const [feedbackuser, setFeedBackUser] = useState('')
 
     const [showCloseResolutionModal, setShowCloseResolutionModal] = useState(false);
     const [resolution, setResolution] = useState('');
-
+    //XXX
+    const [collaboratorState, setCollaboratorState] = useState(false);
+    const [collaborator, setCollaborator] = useState([]);
     const ticket_id = new URLSearchParams(window.location.search).get('id');
 
     const subCategoryOptions = {
@@ -43,13 +48,40 @@ export default function ViewHDTicket() {
     };
 
     const customSelectStyles = {
-        control: (provided, state) => ({
+        container: (provided) => ({
             ...provided,
             width: '100%',
-            height: '43px',
+        }),
+        control: (provided, state) => ({
+            ...provided,
+            minHeight: '43px',
             border: state.isFocused ? '2px solid #fdc10dff' : `2px solid ${provided.borderColor}`,
             boxShadow: state.isFocused ? '1px rgba(253, 169, 13, 1)' : provided.boxShadow,
             '&:hover': { borderColor: '#fdc10dff' },
+        }),
+        valueContainer: (provided) => ({
+            ...provided,
+            paddingTop: '0px',
+            paddingBottom: '0px',
+        }),
+        multiValue: (provided) => ({
+            ...provided,
+            backgroundColor: '#f1f1f1',
+            borderRadius: '4px',
+            padding: '1px 4px',
+        }),
+        multiValueLabel: (provided) => ({
+            ...provided,
+            fontSize: '0.85rem',
+            color: '#333',
+        }),
+        multiValueRemove: (provided) => ({
+            ...provided,
+            color: '#999',
+            ':hover': {
+                backgroundColor: '#ffcccc',
+                color: '#ff0000',
+            },
         }),
     };
     //Alerts timeout
@@ -197,7 +229,6 @@ export default function ViewHDTicket() {
                     params: { user_name: JSON.stringify(usernames) }
                 });
 
-                console.log('HD NOTE USERDATA: ', responses.data)
                 const userMap = {}
                 responses.data.forEach(user => {
                     userMap[user.user_name] = `${user.emp_FirstName} ` + ' ' + `${user.emp_LastName}`;
@@ -211,11 +242,9 @@ export default function ViewHDTicket() {
 
                 //User data base on their user_id
                 const feedbackusername = allfeedback.data.map(user => user.user_id);
-                console.log(feedbackusername)
                 const feedbackRes = await axios.get(`${config.baseApi}/authentication/get-all-by-id`, {
                     params: { user_id: JSON.stringify(feedbackusername) }
                 });
-                console.log(feedbackRes.data)
                 //settin up full nmae by their user_id
                 const alluserMap = {}
                 feedbackRes.data.forEach(user => {
@@ -270,11 +299,24 @@ export default function ViewHDTicket() {
             setTier('Tier 3')
         }
 
+        if (ticketForData.emp_location === 'corp') {
+            setLocation('Corporate Markati');
+        } else if (ticketForData.emp_location === 'lmd') {
+            setLocation('Lepanto Mine Division');
+        }
 
 
 
 
-    }, [formData.ticket_for, formData.assigned_to, formData.assigned_group, formData.ticket_status]);
+    }, [formData.ticket_for, formData.assigned_to, formData.assigned_group, formData.ticket_status, ticketForData.emp_location]);
+
+    useEffect(() => {
+        if (formData.assigned_collaborators) {
+            setCollaboratorState(true);
+        } else {
+            setCollaboratorState(false)
+        }
+    }, [formData.assigned_collaborators])
 
     //Get the ticket 
     useEffect(() => {
@@ -286,6 +328,7 @@ export default function ViewHDTicket() {
                 const ticket = Array.isArray(fetchticket.data) ? fetchticket.data[0] : fetchticket.data;
                 setFormData(ticket);
                 setOriginalData(ticket);
+                console.log(ticket.assigned_collaborators)
             } catch (err) {
                 console.error('Error fetching data:', err);
             }
@@ -299,6 +342,9 @@ export default function ViewHDTicket() {
             .then((res) => {
                 const justUsers = res.data.filter(user => user.emp_tier === 'none');
                 setAllUser(justUsers);
+
+                const allHD = res.data.filter(hd => hd.emp_tier === 'tier1' || hd.emp_tier === 'tier2' || hd.emp_tier === 'tier3');
+                setAllHDUser(allHD);
             })
             .catch((err) => {
                 console.error("Error fetching users:", err);
@@ -364,7 +410,7 @@ export default function ViewHDTicket() {
         const { name, value } = e.target;
         setFormData(prev => {
             const updatedForm = { ...prev, [name]: value };
-            const fieldsToCheck = ['ticket_subject', 'ticket_for', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory'];
+            const fieldsToCheck = ['ticket_subject', 'assigned_collaborators', 'ticket_for', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory'];
             const changed = fieldsToCheck.some(field => updatedForm[field] !== originalData[field]);
             setHasChanges(changed);
 
@@ -411,7 +457,7 @@ export default function ViewHDTicket() {
             //Check changes
             const empInfo = JSON.parse(localStorage.getItem('user'));
             const changedFields = [];
-            const fieldsToCheck = ['ticket_subject', 'ticket_for', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory', 'Description', 'Attachments'];
+            const fieldsToCheck = ['ticket_subject', 'assigned_collaborators', 'ticket_for', 'ticket_type', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory', 'Description', 'Attachments'];
             fieldsToCheck.forEach(field => {
                 const original = originalData[field];
                 const current = formData[field];
@@ -434,6 +480,7 @@ export default function ViewHDTicket() {
             dataToSend.append('Description', formData.Description);
             dataToSend.append('updated_by', empInfo.user_name)
             dataToSend.append('changes_made', changesMade);
+            dataToSend.append('assigned_collaborators', formData.assigned_collaborators);
 
             if (formData.attachmentFiles && formData.attachmentFiles.length > 0) {
                 formData.attachmentFiles.forEach(file => {
@@ -623,7 +670,7 @@ export default function ViewHDTicket() {
                                     <InputGroup.Text>
                                         <FeatherIcon icon="user" />
                                     </InputGroup.Text>
-                                    <Form.Control name="created_by" value={formData.created_by || '-'} disabled />
+                                    <Form.Control name="created_by" value={formData.created_by ?? '-'} disabled />
                                 </InputGroup>
                             </Col>
                             <Col md={6} className="mb-2">
@@ -671,20 +718,26 @@ export default function ViewHDTicket() {
                                     <InputGroup.Text>
                                         <FeatherIcon icon="briefcase" />
                                     </InputGroup.Text>
-                                    <Form.Control value={ticketForData.emp_department || ''} disabled />
+                                    <Form.Control value={ticketForData.emp_department ?? ''} disabled />
                                 </InputGroup>
                             </Col>
                             <Col md={6} className="mb-2">
-                                <Form.Label>Position</Form.Label>
+                                <Form.Label>Location</Form.Label>
                                 <InputGroup>
                                     <InputGroup.Text>
-                                        <FeatherIcon icon="activity" />
+                                        <FeatherIcon icon="globe" />
                                     </InputGroup.Text>
-                                    <Form.Control value={ticketForData.emp_position || ''} disabled />
+                                    <Form.Control value={location ?? ''} disabled />
                                 </InputGroup>
                             </Col>
+                            {/* XXX */}
                             <Col md={6} className="mb-2">
-                                <Form.Label>Assigned To</Form.Label>
+                                <Form.Label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span>Assigned To</span>
+                                    <span onClick={() => setCollaboratorState(true)} style={{ fontSize: '0.85rem', color: '#002E05', cursor: 'pointer' }}>
+                                        Add collaborators
+                                    </span>
+                                </Form.Label>
                                 <InputGroup>
                                     <InputGroup.Text>
                                         <FeatherIcon icon="user" />
@@ -700,13 +753,98 @@ export default function ViewHDTicket() {
                                     />
                                 </InputGroup>
                             </Col>
+
+                            {collaboratorState && (
+                                <Col md={6} className="mb-2">
+                                    <Form.Label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span>Collaborators</span>
+                                        {collaboratorState ? (
+                                            <span onClick={() => setCollaboratorState(false)} style={{ fontSize: '0.85rem', color: '#002E05', cursor: 'pointer' }}>
+                                                <FeatherIcon icon="x" />
+                                            </span>
+                                        ) : (
+                                            <span onClick={() => setCollaboratorState(true)} style={{ fontSize: '0.85rem', color: '#002E05', cursor: 'pointer' }}>
+                                                Add collaborators
+                                            </span>
+                                        )}
+                                    </Form.Label>
+                                    <InputGroup>
+                                        <InputGroup.Text>
+                                            <FeatherIcon icon="users" />
+                                        </InputGroup.Text>
+                                        {collaboratorState ? (
+                                            <div style={{ flex: 1 }}>
+                                                <Select
+                                                    name="assigned_collaborators"
+                                                    value={
+                                                        (
+                                                            Array.isArray(formData.assigned_collaborators)
+                                                                ? formData.assigned_collaborators
+                                                                : typeof formData.assigned_collaborators === 'string'
+                                                                    ? formData.assigned_collaborators.split(',')
+                                                                    : []
+                                                        )
+                                                            .filter(user_name => user_name.trim() !== formData.assigned_to)
+                                                            .map((username) => {
+                                                                const user = allHDUser.find((u) => u.user_name === username.trim());
+                                                                return user
+                                                                    ? { value: user.user_name, label: `${user.emp_FirstName} ${user.emp_LastName}` }
+                                                                    : { value: username, label: username };
+                                                            })
+                                                    }
+                                                    onChange={selectedOptions =>
+                                                        handleChange({
+                                                            target: {
+                                                                name: 'assigned_collaborators',
+                                                                value: selectedOptions ? selectedOptions.map(option => option.value) : []
+                                                            }
+                                                        })
+                                                    }
+                                                    options={allHDUser
+                                                        .filter(user => user.user_name !== formData.assigned_to)
+                                                        .map(user => ({
+                                                            value: user.user_name,
+                                                            label: `${user.emp_FirstName} ${user.emp_LastName}`
+                                                        }))}
+                                                    isMulti
+                                                    isDisabled={!isEditable}
+                                                    isClearable
+                                                    placeholder="Select Collaborators"
+                                                    styles={customSelectStyles}
+                                                    classNamePrefix="react-select"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <Form.Control
+                                                name="assigned_collaborators"
+                                                value={
+                                                    (
+                                                        Array.isArray(formData.assigned_collaborators)
+                                                            ? formData.assigned_collaborators
+                                                            : typeof formData.assigned_collaborators === 'string'
+                                                                ? formData.assigned_collaborators.split(',')
+                                                                : []
+                                                    )
+                                                        .map((username) => {
+                                                            const user = allHDUser.find((u) => u.user_name === username.trim());
+                                                            return user ? `${user.emp_FirstName} ${user.emp_LastName}` : username;
+                                                        })
+                                                        .join(', ')
+                                                }
+                                                disabled
+                                            />
+                                        )}
+                                    </InputGroup>
+                                </Col>
+                            )}
+
                             <Col md={6} className="mb-2">
                                 <Form.Label>Assigned Group</Form.Label>
                                 <InputGroup>
                                     <InputGroup.Text>
                                         <FeatherIcon icon="users" />
                                     </InputGroup.Text>
-                                    <Form.Control name="assigned_group" value={tier || '-'} disabled />
+                                    <Form.Control name="assigned_group" value={tier ?? '-'} disabled />
                                 </InputGroup>
                             </Col>
                         </Row>

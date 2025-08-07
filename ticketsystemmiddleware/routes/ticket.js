@@ -84,6 +84,9 @@ const Tickets = db.define('ticket_master', {
     assigned_group: {
         type: DataTypes.STRING,
     },
+    assigned_collaborators: {
+        type: DataTypes.STRING,
+    },
     asset_number: {
         type: DataTypes.STRING,
     },
@@ -147,6 +150,7 @@ router.post('/create-ticket', upload.array('Attachments'), async (req, res) => {
             ticket_SubCategory,
             asset_number,
             Description,
+            assigned_location,
             created_by
         } = req.body;
 
@@ -163,6 +167,7 @@ router.post('/create-ticket', upload.array('Attachments'), async (req, res) => {
             ticket_category,
             ticket_SubCategory,
             ticket_for: created_by,
+            assigned_location,
             asset_number,
             Description,
             created_by,
@@ -287,6 +292,7 @@ router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
             ticket_category,
             ticket_SubCategory,
             updated_by,
+            assigned_collaborators,
             ticket_for,
             changes_made
         } = req.body;
@@ -344,6 +350,7 @@ router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
             ticket_SubCategory,
             Attachments: attachmentPath,
             Description,
+            assigned_collaborators,
             ticket_for,
             updated_at: currentTimestamp,
             updated_by

@@ -94,10 +94,12 @@ export default function ViewTicket() {
                 setTier('Tier 2')
             } else if (formData.assigned_group === 'tier3') {
                 setTier('Tier 3')
+            } else {
+                setTier('Unassigned');
             }
         };
         fetchData();
-    }, [ticket_id]);
+    }, [ticket_id, formData.assigned_group]);
 
 
     // Check if ticket status is closed
@@ -442,7 +444,7 @@ export default function ViewTicket() {
                                     <InputGroup.Text>
                                         <FeatherIcon icon="user" />
                                     </InputGroup.Text>
-                                    <Form.Control name="created_by" value={formData.created_by || '-'} disabled />
+                                    <Form.Control name="created_by" value={formData.created_by ?? '-'} disabled />
                                 </InputGroup>
                             </Col>
                             <Col md={6} className="mb-2">
@@ -451,7 +453,7 @@ export default function ViewTicket() {
                                     <InputGroup.Text>
                                         <FeatherIcon icon="user" />
                                     </InputGroup.Text>
-                                    <Form.Control value={ticketForData.emp_FirstName + " " + ticketForData.emp_LastName || ''} disabled />
+                                    <Form.Control value={ticketForData.emp_FirstName + " " + ticketForData.emp_LastName ?? ''} disabled />
                                 </InputGroup>
                             </Col>
                             <Col md={6} className="mb-2">
@@ -460,7 +462,7 @@ export default function ViewTicket() {
                                     <InputGroup.Text>
                                         <FeatherIcon icon="briefcase" />
                                     </InputGroup.Text>
-                                    <Form.Control value={ticketForData.emp_department || ''} disabled />
+                                    <Form.Control value={ticketForData.emp_department ?? ''} disabled />
                                 </InputGroup>
                             </Col>
                             <Col md={6} className="mb-2">
@@ -469,7 +471,7 @@ export default function ViewTicket() {
                                     <InputGroup.Text>
                                         <FeatherIcon icon="activity" />
                                     </InputGroup.Text>
-                                    <Form.Control value={ticketForData.emp_position || ''} disabled />
+                                    <Form.Control value={ticketForData.emp_position ?? ''} disabled />
                                 </InputGroup>
                             </Col>
                             <Col md={6} className="mb-2">
@@ -495,7 +497,7 @@ export default function ViewTicket() {
                                     <InputGroup.Text>
                                         <FeatherIcon icon="users" />
                                     </InputGroup.Text>
-                                    <Form.Control name="assigned_group" value={tier || '-'} disabled />
+                                    <Form.Control name="assigned_group" value={tier ?? '-'} disabled />
                                 </InputGroup>
                             </Col>
                         </Row>
@@ -504,15 +506,15 @@ export default function ViewTicket() {
                         <Row>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Ticket ID</Form.Label>
-                                <Form.Control name="ticket_id" value={formData.ticket_id || ''} disabled />
+                                <Form.Control name="ticket_id" value={formData.ticket_id ?? ''} disabled />
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Ticket Subject</Form.Label>
-                                <Form.Control name="ticket_subject" value={formData.ticket_subject || ''} onChange={handleChange} disabled={!close} />
+                                <Form.Control name="ticket_subject" value={formData.ticket_subject ?? ''} onChange={handleChange} disabled={!close} />
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Ticket Type</Form.Label>
-                                <Form.Select name="ticket_type" value={formData.ticket_type || ''} onChange={handleChange} required disabled={!close}>
+                                <Form.Select name="ticket_type" value={formData.ticket_type ?? ''} onChange={handleChange} required disabled={!close}>
                                     <option value="incident">Incident</option>
                                     <option value="request">Request</option>
                                     <option value="inquiry">Inquiry</option>
@@ -520,7 +522,7 @@ export default function ViewTicket() {
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Status</Form.Label>
-                                <Form.Select name="ticket_status" value={formData.ticket_status || ''} onChange={handleChange} required>
+                                <Form.Select name="ticket_status" value={formData.ticket_status ?? ''} onChange={handleChange} required>
                                     <option value="open" hidden>Open</option>
                                     <option value="closed">Close</option>
                                     <option value="re-opened">Re open</option>
@@ -534,7 +536,7 @@ export default function ViewTicket() {
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-2">
                                 <Form.Label>Urgency</Form.Label>
-                                <Form.Select name="ticket_urgencyLevel" value={formData.ticket_urgencyLevel || ''} onChange={handleChange} required disabled={!close}>
+                                <Form.Select name="ticket_urgencyLevel" value={formData.ticket_urgencyLevel ?? ''} onChange={handleChange} required disabled={!close}>
                                     <option value="low">Low</option>
                                     <option value="medium">Medium</option>
                                     <option value="high">High</option>
@@ -545,7 +547,7 @@ export default function ViewTicket() {
                                 <Form.Label>Category</Form.Label>
                                 <Form.Select
                                     name="ticket_category"
-                                    value={formData.ticket_category || ''}
+                                    value={formData.ticket_category ?? ''}
                                     onChange={handleChange}
                                     required
                                     disabled={!close}
@@ -559,7 +561,7 @@ export default function ViewTicket() {
                                 <Form.Label>Sub Category</Form.Label>
                                 <Form.Select
                                     name="ticket_SubCategory"
-                                    value={formData.ticket_SubCategory || ''}
+                                    value={formData.ticket_SubCategory ?? ''}
                                     onChange={handleChange}
                                     required
                                     disabled={!close}
@@ -575,7 +577,7 @@ export default function ViewTicket() {
                             </Form.Group>
                             <Form.Group as={Col} md={6} className="mb-3">
                                 <Form.Label>Asset Tag</Form.Label>
-                                <Form.Control name="asset_number" value={formData.asset_number || ''} disabled />
+                                <Form.Control name="asset_number" value={formData.asset_number ?? ''} disabled />
                             </Form.Group>
 
                             <Form.Group as={Col} md={12} className="mb-2">
@@ -591,7 +593,7 @@ export default function ViewTicket() {
                                 as="textarea"
                                 rows={7}
                                 name="Description"
-                                value={formData.Description || ''}
+                                value={formData.Description ?? 'No Description Provided'}
                                 onChange={handleChange}
                                 disabled={!close}
                             />

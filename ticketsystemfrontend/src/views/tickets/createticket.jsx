@@ -93,8 +93,10 @@ export default function CreateTicket() {
     e.preventDefault();
     setError('');
     setSuccess('');
-    const errors = {};
 
+    const empInfo = JSON.parse(localStorage.getItem('user'));
+
+    const errors = {};
     if (!formData.ticket_subject.trim()) errors.ticket_subject = 'Subject is required';
     if (!formData.ticket_type) errors.ticket_type = 'Type is required';
     if (!formData.ticket_urgencyLevel) errors.ticket_urgencyLevel = 'Urgency level is required';
@@ -128,7 +130,7 @@ export default function CreateTicket() {
       }
 
       data.set('created_by', currentUser);
-
+      data.set('assigned_location', empInfo.emp_location);
       const response = await axios.post(`${config.baseApi}/ticket/create-ticket`, data, {
         headers: {
           'Content-Type': 'multipart/form-data'

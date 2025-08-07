@@ -12,6 +12,8 @@ import FeatherIcon from 'feather-icons-react';
 // assets
 import logoDark from 'assets/images/logo-dark.svg';
 import newLogo from 'assets/images/new-logo.png'
+import Waves from 'layouts/ReactBits/Paticles';
+
 
 export default function SignIn1() {
   const [username, setUsername] = useState('');
@@ -81,18 +83,44 @@ export default function SignIn1() {
     <div
       className="auth-wrapper"
       style={{
-        background: 'linear-gradient(to bottom, #ffe798ff, #b8860b)',
+        position: 'relative',
         minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        overflow: 'hidden',
       }}
     >
-      <div className="auth-content text-center">
-        <Card className="borderless">
-          <Row className="align-items-center text-center">
-            <Col>
-              <Card.Body className="card-body">
+      {/* PARTICLES BACKGROUND */}
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}>
+        <Waves
+          lineColor="#eac002ff"
+          backgroundColor="rgba(86, 86, 86, 1)"
+          waveSpeedX={0.02}
+          waveSpeedY={0.01}
+          waveAmpX={40}
+          waveAmpY={20}
+          friction={0.9}
+          tension={0.01}
+          maxCursorMove={120}
+          xGap={12}
+          yGap={36}
+        />
+      </div>
+
+      {/* MAIN LOGIN CONTENT */}
+      <div
+        className="auth-content text-center"
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+        }}
+      >
+        <Card className="borderless" style={{ boxShadow: '0px 2px 8px 2px rgba(0, 20, 9, 1), 0 6px 20px 0 rgba(28, 28, 28, 0.86)' }}>
+          <Row className="align-items-center text-center" >
+            <Col >
+              <Card.Body className="card-body" >
                 <img src={newLogo} alt="" className="img-fluid mb-4" />
                 <h4 className="mb-3 f-w-400">Log in</h4>
 
@@ -133,11 +161,10 @@ export default function SignIn1() {
                     />
                   </InputGroup>
 
-                  <Button type="submit" className="btn btn-block btn-primary mb-4 mt-4 w-100" >
+                  <Button type="submit" className="btn btn-block btn-primary mb-4 mt-4 w-100">
                     Signin
                   </Button>
                 </Form>
-
               </Card.Body>
             </Col>
           </Row>
@@ -145,4 +172,5 @@ export default function SignIn1() {
       </div>
     </div>
   );
+
 }

@@ -1895,6 +1895,11 @@
   "resolved" "https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.2.11.tgz"
   "version" "4.2.11"
 
+"gsap@^3.13.0":
+  "integrity" "sha512-QL7MJ2WMjm1PHWsoFrAQH/J8wUeqZvMtHO58qdekHpCfhvhSL4gSiz6vJf5EeMP0LOn3ZCprL2ki/gjED8ghVw=="
+  "resolved" "https://registry.npmjs.org/gsap/-/gsap-3.13.0.tgz"
+  "version" "3.13.0"
+
 "has-bigints@^1.0.2":
   "integrity" "sha512-R3pbpkcIqv2Pm3dUwgjclDRVmWpTJW2DcMzcIhEXEx1oh/CEMObMm3KLmRJOdvhM7o4uQBnwr8pzRK2sJWIqfg=="
   "resolved" "https://registry.npmjs.org/has-bigints/-/has-bigints-1.1.0.tgz"
@@ -2511,6 +2516,11 @@
     "call-bound" "^1.0.3"
     "define-properties" "^1.2.1"
     "es-object-atoms" "^1.0.0"
+
+"ogl@^1.0.11":
+  "integrity" "sha512-kUpC154AFfxi16pmZUK4jk3J+8zxwTWGPo03EoYA8QPbzikHoaC82n6pNTbd+oEaJonaE8aPWBlX7ad9zrqLsA=="
+  "resolved" "https://registry.npmjs.org/ogl/-/ogl-1.0.11.tgz"
+  "version" "1.0.11"
 
 "optionator@^0.9.3":
   "integrity" "sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g=="

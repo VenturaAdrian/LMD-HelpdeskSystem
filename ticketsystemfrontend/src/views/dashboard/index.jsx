@@ -5,6 +5,11 @@ import { useEffect } from 'react';
 
 export default function Dashboard() {
 
+    useEffect(() => {
+        const empInfo = JSON.parse(localStorage.getItem("user"));
+        console.log(empInfo)
+    })
+
     return (
         <Container
             fluid

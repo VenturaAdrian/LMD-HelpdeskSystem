@@ -1,14 +1,14 @@
 import { Children, lazy } from "react";
 
-const LoginPage = lazy(() => import('views/auth/login') );
+const LoginPage = lazy(() => import('views/auth/login'));
 
 
 const AuthenticationRoutes = {
     path: '/',
-    children:[
+    children: [
         {
-            path:'/',
-            element: <LoginPage/>
+            path: '/',
+            element: <LoginPage />
         }
     ]
 }

@@ -42,6 +42,9 @@ const Users1 = db.define('users_master', {
   emp_department: {
     type: DataTypes.STRING
   },
+  emp_location: {
+    type: DataTypes.STRING
+  },
   emp_FirstName: {
     type: DataTypes.STRING
   },
@@ -107,6 +110,7 @@ router.get('/login', async function (req, res, next) {
     const result = {
       user_id: user[0].user_id,
       user_name: user[0].user_name,
+      emp_location: user[0].emp_location,
       emp_department: user[0].emp_department,
       emp_position: user[0].emp_position,
       emp_email: user[0].emp_email,
@@ -137,6 +141,7 @@ router.post('/register', async function (req, res, next) {
     emp_tier,
     emp_role,
     emp_phone,
+    emp_location,
     emp_department,
     emp_position,
     current_user
@@ -152,6 +157,7 @@ router.post('/register', async function (req, res, next) {
       emp_tier: emp_tier,
       emp_role: emp_role,
       emp_phone: emp_phone,
+      emp_location: emp_location,
       emp_department: emp_department,
       emp_position: emp_position,
       created_by: current_user,

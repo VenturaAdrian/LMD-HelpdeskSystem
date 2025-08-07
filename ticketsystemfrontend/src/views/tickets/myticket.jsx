@@ -25,6 +25,7 @@ export default function Myticket() {
     //Get All Tickets Assigned on User
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user'));
+
         if (!userName) return;
 
         axios.get(`${config.baseApi}/ticket/get-all-ticket`)
@@ -35,15 +36,18 @@ export default function Myticket() {
                         (ticket) => ticket.ticket_for === userName &&
                             (ticket.is_reviewed === false || ticket.is_reviewed === null)
                     );
-
                     setAllTicket(userTickets);
+
                     //If HelpDeskUser has assigned ticket.
                 } else if (user.emp_tier === 'tier1' || user.emp_tier === 'tier2' || user.emp_tier === 'tier3') {
                     const userTickets = res.data.filter(
-                        (ticket) => ticket.assigned_to === userName &&
+                        (ticket) =>
+                            ticket.assigned_to === userName &&
                             (ticket.is_reviewed === false || ticket.is_reviewed === null)
                     );
+
                     setAllTicket(userTickets);
+                    console.log(userTickets);
                 }
             })
             .catch((err) => console.error("Error fetching tickets:", err));
