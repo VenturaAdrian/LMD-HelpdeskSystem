@@ -3,18 +3,22 @@ import axios from "axios";
 import config from "config";
 import { Container, Card, Accordion, ListGroup, Modal, Button, Form, ButtonGroup, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router";
-import { PencilSquare } from 'react-bootstrap-icons';
+import { PencilSquare, Archive } from 'react-bootstrap-icons';
 
 export default function Hardware() {
     const [loaded] = useState(true);
     const navigate = useNavigate();
     const [showModal, setShowModal] = useState(false);
+    const [kbID, setKbID] = useState("");
     const [newTitle, setNewTitle] = useState("");
     const [newContent, setNewContent] = useState("");
     const contentRef = useRef(null);
     const [faqData, setFaqData] = useState([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+
+    const [addMode, setAddMode] = useState(false);
+    const [editMode, setEditMode] = useState(false);
 
     // Auto-hide alerts
     useEffect(() => {
@@ -34,11 +38,17 @@ export default function Hardware() {
             try {
                 const all = await axios.get(`${config.baseApi}/knowledgebase/all-knowledgebase`);
                 if (all.data && Array.isArray(all.data)) {
-                    setFaqData(all.data.map(item => ({
-                        question: item.kb_title,
-                        answer: item.kb_desc
-                    })));
+                    setFaqData(
+                        all.data
+                            .filter(item => item.is_active === true && item.kb_category === "hardware")
+                            .map(item => ({
+                                id: item.kb_id,
+                                question: item.kb_title,
+                                answer: item.kb_desc
+                            }))
+                    );
                 }
+                console.log(all.data);
             } catch (err) {
                 console.error("Error fetching FAQ data:", err);
             }
@@ -48,12 +58,57 @@ export default function Hardware() {
 
     // Pre-fill editor when editing
     useEffect(() => {
-        if (contentRef.current) {
-            contentRef.current.innerHTML = newContent || "";
+        if (showModal && contentRef.current) {
+            contentRef.current.innerHTML = newContent;
         }
-    }, [newContent]);
+    }, [showModal]);
+
+    const handleArchive = async (id) => {
+
+        try {
+            const empInfo = JSON.parse(localStorage.getItem("user"));
+            await axios.post(`${config.baseApi}/knowledgebase/archive-knowledgebase`, { kb_id: id, updated_by: empInfo.user_name })
+
+            setSuccess("Hardware troubleshooting step archived successfully");
+            window.location.reload();
+
+        } catch (err) {
+            console.log('Unable to archive knowledgebase: ', err);
+            setError("Failed to archive kb.");
+        }
+
+    }
+
+    const handleUpdate = async () => {
+
+        if (newTitle === '') {
+            setError("Please fill in title.");
+        } else if (newContent.replace(/<(.|\n)*?>/g, '').trim() === '') {
+            setError("Please fill in description.");
+        } else {
+            const empInfo = JSON.parse(localStorage.getItem("user"));
+            try {
+                await axios.post(`${config.baseApi}/knowledgebase/update-knowledgebase`, {
+                    kb_id: kbID,
+                    kb_title: newTitle,
+                    kb_desc: newContent,
+                    updated_by: empInfo.user_name,
+                })
+
+                setEditMode(false);
+                setSuccess("Hardware updated successfully");
+                setNewTitle("");
+                setNewContent("");
+                setShowModal(false);
+                window.location.reload(); // Reload to reflect changes 
+            } catch (err) {
+                console.log('Unable to update knowledgebase: ', err)
+            }
+        }
+    }
 
     const handleSave = async () => {
+        console.log("Saving Hardware:", newTitle, newContent);
         if (newTitle === '') {
             setError("Please fill in title.");
         } else if (newContent.replace(/<(.|\n)*?>/g, '').trim() === '') {
@@ -75,7 +130,10 @@ export default function Hardware() {
             setFaqData([...faqData, { question: newTitle, answer: newContent }]);
             setNewTitle("");
             setNewContent("");
+            setEditMode(false);
+            setAddMode(false);
             setShowModal(false);
+            window.location.reload(); // Reload to reflect changes
         }
     };
 
@@ -123,16 +181,17 @@ export default function Hardware() {
                         <h2 className="fw-bold text-dark mb-0">Hardware Frequently Asked Questions</h2>
                         <div className="d-flex gap-2">
                             <Button variant="primary" onClick={() => navigate('/hardwarearchive')}>Archive</Button>
-                            <Button variant="primary" onClick={() => setShowModal(true)}>Add</Button>
+                            <Button variant="primary" onClick={() => { setShowModal(true); setAddMode(true); }}>Add</Button>
                         </div>
                     </div>
 
                     <hr />
 
-                    <Accordion defaultActiveKey="0" flush>
+                    <Accordion flush>
                         {faqData.map((faq, index) => (
                             <Accordion.Item eventKey={index.toString()} key={index}>
                                 <Accordion.Header>{faq.question}</Accordion.Header>
+
                                 <Accordion.Body>
                                     <div className="d-flex justify-content-between align-items-start">
                                         <div
@@ -140,6 +199,7 @@ export default function Hardware() {
                                             style={{ flex: 1 }}
                                             dangerouslySetInnerHTML={{ __html: faq.answer }}
                                         />
+                                        {/* EDIT BUTTON */}
                                         <Button
                                             variant="outline-secondary"
                                             size="sm"
@@ -148,9 +208,28 @@ export default function Hardware() {
                                                 setNewTitle(faq.question);
                                                 setNewContent(faq.answer);
                                                 setShowModal(true);
+                                                setEditMode(true);
+                                                setKbID(faq.id);
                                             }}
                                         >
                                             <PencilSquare />
+                                        </Button>
+                                        {/* Archive BUtton */}
+                                        <Button
+                                            variant="outline-secondary"
+                                            size="sm"
+                                            className="ms-2"
+                                            onClick={() => {
+                                                handleArchive(faq.id);
+                                                setKbID(faq.id);
+                                                setShowModal(false);
+                                                setNewTitle("");
+                                                setNewContent("");
+                                                setAddMode(false);
+                                                setEditMode(false);
+                                            }}
+                                        >
+                                            <Archive />
                                         </Button>
                                     </div>
                                 </Accordion.Body>
@@ -170,8 +249,9 @@ export default function Hardware() {
 
             {/* Modal */}
             <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" centered>
-                <Modal.Header closeButton>
-                    <Modal.Title>Add / Edit Hardware Troubleshooting Steps</Modal.Title>
+                <Modal.Header >
+                    <Modal.Title>{editMode ? 'Edit Hardware Troubleshooting Step' : 'Add Hardware Troubleshooting Step'}</Modal.Title>
+
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
@@ -201,6 +281,7 @@ export default function Hardware() {
                             <div
                                 ref={contentRef}
                                 contentEditable
+
                                 onInput={handleContentChange}
                                 style={{
                                     border: "1px solid #ced4da",
@@ -215,8 +296,20 @@ export default function Hardware() {
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={handleSave}>Save</Button>
+                    <Button variant="secondary" onClick={() => {
+                        setShowModal(false);
+                        setNewTitle("");
+                        setNewContent("");
+                        setAddMode(false);
+                        setEditMode(false);
+                        setError('');
+                        setSuccess('');
+                    }
+                    }>
+                        Cancel</Button>
+                    <Button variant="primary" onClick={editMode ? handleUpdate : handleSave}>
+                        {editMode ? 'Update' : 'Save'}
+                    </Button>
                 </Modal.Footer>
             </Modal>
         </Container>
