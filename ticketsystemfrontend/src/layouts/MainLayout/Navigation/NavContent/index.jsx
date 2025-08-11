@@ -42,7 +42,7 @@ export default function NavContent({ navigation, activeNav }) {
   );
 
   const mHeader = (
-    <div className="m-header" style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', padding: '12px 0' }}>
+    <div className="m-header" style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', padding: '38px 0' }}>
       <Link to="/dashboard" className="b-brand">
         <img
           src={newLogo}

@@ -1,6 +1,6 @@
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from 'react-icons/fa';
 import { useEffect, useState } from "react";
-import { Container, Row, Col, Form, Card, Button, Alert, FormSelect, Modal, InputGroup } from 'react-bootstrap';
+import { Container, Row, Col, Form, Card, Button, Alert, FormSelect, Modal, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import axios from 'axios';
 import config from 'config';
 import Select from 'react-select';
@@ -38,8 +38,9 @@ export default function ViewHDTicket() {
     const [resolution, setResolution] = useState('');
     //XXX
     const [collaboratorState, setCollaboratorState] = useState(false);
-    const [collaborator, setCollaborator] = useState([]);
     const ticket_id = new URLSearchParams(window.location.search).get('id');
+
+    const [showUserCard, setShowUserCard] = useState(false);
 
     const subCategoryOptions = {
         hardware: ['Computer', 'Laptop', 'Monitor', 'Printer/Scanner', 'Peripherals', 'Fax', 'Others'],
@@ -315,6 +316,7 @@ export default function ViewHDTicket() {
             setCollaboratorState(true);
         } else {
             setCollaboratorState(false)
+
         }
     }, [formData.assigned_collaborators])
 
@@ -673,12 +675,48 @@ export default function ViewHDTicket() {
                                     <Form.Control name="created_by" value={formData.created_by ?? '-'} disabled />
                                 </InputGroup>
                             </Col>
-                            <Col md={6} className="mb-2">
+                            <Col md={6} className="mb-2" style={{ position: 'relative' }}>
                                 <Form.Label>Employee</Form.Label>
                                 <InputGroup style={{ height: '43px' }}>
-                                    <InputGroup.Text>
-                                        <FeatherIcon icon="user" />
-                                    </InputGroup.Text>
+                                    {/* Icon trigger */}
+                                    <div style={{ position: 'relative' }}>
+                                        <InputGroup.Text
+                                            style={{ cursor: 'pointer', height: '43px' }}
+                                            onClick={() => setShowUserCard(prev => !prev)}
+                                        >
+                                            <FeatherIcon icon="user" />
+                                        </InputGroup.Text>
+
+                                        {/* Floating Card */}
+                                        {showUserCard && formData.ticket_for && (() => {
+                                            const selectedUser = allUser.find(u => u.user_name === formData.ticket_for);
+                                            if (!selectedUser) return null;
+
+                                            return (
+                                                <div
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: '50px',
+                                                        left: 0,
+                                                        zIndex: 1000,
+                                                        minWidth: '220px',
+                                                        padding: '12px',
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '8px',
+                                                        backgroundColor: '#fff',
+                                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                                        whiteSpace: 'nowrap'
+                                                    }}
+                                                >
+                                                    <div style={{ display: 'flex', marginBottom: '6px' }}><strong style={{ minWidth: '70px' }}>Position:</strong> {selectedUser.emp_position}</div>
+                                                    <div style={{ display: 'flex', marginBottom: '6px' }}><strong style={{ minWidth: '70px' }}>Email:</strong> {selectedUser.emp_email}</div>
+                                                    <div style={{ display: 'flex', marginBottom: '6px' }}><strong style={{ minWidth: '70px' }}>Phone:</strong> {selectedUser.emp_phone}</div>
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+
+                                    {/* Employee Select */}
                                     <div style={{ flex: 1 }}>
                                         <Select
                                             name="ticket_for"
@@ -690,14 +728,15 @@ export default function ViewHDTicket() {
                                                     }
                                                     : null
                                             }
-                                            onChange={option =>
+                                            onChange={option => {
                                                 handleChange({
                                                     target: {
                                                         name: 'ticket_for',
                                                         value: option ? option.value : ''
                                                     }
-                                                })
-                                            }
+                                                });
+                                                setShowUserCard(false); // hide card when changing employee
+                                            }}
                                             options={allUser.map(user => ({
                                                 value: user.user_name,
                                                 label: `${user.emp_FirstName} ${user.emp_LastName}`
@@ -711,6 +750,7 @@ export default function ViewHDTicket() {
                                     </div>
                                 </InputGroup>
                             </Col>
+
 
                             <Col md={6} className="mb-2">
                                 <Form.Label>Department</Form.Label>
@@ -789,7 +829,7 @@ export default function ViewHDTicket() {
                                                                 const user = allHDUser.find((u) => u.user_name === username.trim());
                                                                 return user
                                                                     ? { value: user.user_name, label: `${user.emp_FirstName} ${user.emp_LastName}` }
-                                                                    : { value: username, label: username };
+                                                                    : '';
                                                             })
                                                     }
                                                     onChange={selectedOptions =>
@@ -804,7 +844,7 @@ export default function ViewHDTicket() {
                                                         .filter(user => user.user_name !== formData.assigned_to)
                                                         .map(user => ({
                                                             value: user.user_name,
-                                                            label: `${user.emp_FirstName} ${user.emp_LastName}`
+                                                            label: user ? `${user.emp_FirstName} ${user.emp_LastName}` : ''
                                                         }))}
                                                     isMulti
                                                     isDisabled={!isEditable}
@@ -821,7 +861,7 @@ export default function ViewHDTicket() {
                                                     (
                                                         Array.isArray(formData.assigned_collaborators)
                                                             ? formData.assigned_collaborators
-                                                            : typeof formData.assigned_collaborators === 'string'
+                                                            : typeof formData.assigned_collaborators === 'string' && formData.assigned_collaborators.trim() !== ''
                                                                 ? formData.assigned_collaborators.split(',')
                                                                 : []
                                                     )
@@ -829,7 +869,8 @@ export default function ViewHDTicket() {
                                                             const user = allHDUser.find((u) => u.user_name === username.trim());
                                                             return user ? `${user.emp_FirstName} ${user.emp_LastName}` : username;
                                                         })
-                                                        .join(', ')
+                                                        .join(', ') || ' NONE'
+
                                                 }
                                                 disabled
                                             />

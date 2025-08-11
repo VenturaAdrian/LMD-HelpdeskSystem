@@ -13,7 +13,8 @@ import FeatherIcon from 'feather-icons-react';
 import logoDark from 'assets/images/logo-dark.svg';
 import newLogo from 'assets/images/new-logo.png'
 import Waves from 'layouts/ReactBits/Paticles';
-
+import FadeContent from 'layouts/ReactBits/FadeContent';
+import RoundedSlideButton from 'layouts/ReactBits/RoundedSlideButton';
 
 export default function SignIn1() {
   const [username, setUsername] = useState('');
@@ -80,6 +81,7 @@ export default function SignIn1() {
   };
 
   return (
+
     <div
       className="auth-wrapper"
       style={{
@@ -104,72 +106,71 @@ export default function SignIn1() {
           yGap={36}
         />
       </div>
+      <FadeContent blur={false} duration={200} easing="ease-out" initialOpacity={0}>
+        {/* MAIN LOGIN CONTENT */}
+        <div
+          className="auth-content text-center"
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '100vh',
+          }}
+        >
+          <Card className="borderless" style={{ boxShadow: '0px 2px 8px 2px rgba(0, 20, 9, 1), 0 6px 20px 0 rgba(28, 28, 28, 0.86)' }}>
+            <Row className="align-items-center text-center" >
+              <Col >
+                <Card.Body className="card-body" >
+                  <img src={newLogo} alt="" className="img-fluid mb-4" />
+                  <h4 className="mb-3 f-w-400"><b>Log in</b></h4>
 
-      {/* MAIN LOGIN CONTENT */}
-      <div
-        className="auth-content text-center"
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-        }}
-      >
-        <Card className="borderless" style={{ boxShadow: '0px 2px 8px 2px rgba(0, 20, 9, 1), 0 6px 20px 0 rgba(28, 28, 28, 0.86)' }}>
-          <Row className="align-items-center text-center" >
-            <Col >
-              <Card.Body className="card-body" >
-                <img src={newLogo} alt="" className="img-fluid mb-4" />
-                <h4 className="mb-3 f-w-400">Log in</h4>
+                  {/* ALERT BAR */}
+                  {loginError && (
+                    <div
+                      className="position-fixed top-0 start-50 translate-middle-x mt-3"
+                      style={{ zIndex: 9999, minWidth: '300px' }}
+                    >
+                      <Alert variant="danger" onClose={() => setLoginError('')} dismissible>
+                        {loginError}
+                      </Alert>
+                    </div>
+                  )}
 
-                {/* ALERT BAR */}
-                {loginError && (
-                  <div
-                    className="position-fixed top-0 start-50 translate-middle-x mt-3"
-                    style={{ zIndex: 9999, minWidth: '300px' }}
-                  >
-                    <Alert variant="danger" onClose={() => setLoginError('')} dismissible>
-                      {loginError}
-                    </Alert>
-                  </div>
-                )}
+                  <Form onSubmit={Auth}>
+                    <InputGroup className="mb-3">
+                      <InputGroup.Text>
+                        <FeatherIcon icon="mail" />
+                      </InputGroup.Text>
+                      <Form.Control
+                        type="text"
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                      />
+                    </InputGroup>
 
-                <Form onSubmit={Auth}>
-                  <InputGroup className="mb-3">
-                    <InputGroup.Text>
-                      <FeatherIcon icon="mail" />
-                    </InputGroup.Text>
-                    <Form.Control
-                      type="text"
-                      placeholder="Username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                    />
-                  </InputGroup>
+                    <InputGroup className="mb-3">
+                      <InputGroup.Text>
+                        <FeatherIcon icon="lock" />
+                      </InputGroup.Text>
+                      <Form.Control
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                    </InputGroup>
+                    <RoundedSlideButton type="submit">Signin</RoundedSlideButton>
 
-                  <InputGroup className="mb-3">
-                    <InputGroup.Text>
-                      <FeatherIcon icon="lock" />
-                    </InputGroup.Text>
-                    <Form.Control
-                      type="password"
-                      placeholder="Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </InputGroup>
-
-                  <Button type="submit" className="btn btn-block btn-primary mb-4 mt-4 w-100">
-                    Signin
-                  </Button>
-                </Form>
-              </Card.Body>
-            </Col>
-          </Row>
-        </Card>
-      </div>
+                  </Form>
+                </Card.Body>
+              </Col>
+            </Row>
+          </Card>
+        </div>
+      </FadeContent>
     </div>
   );
 

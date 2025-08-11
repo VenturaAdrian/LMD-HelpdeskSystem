@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Form, Button, Card, Row, Col, Container, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import config from 'config';
+import AnimatedContent from 'layouts/ReactBits/AnimatedContent';
 
 export default function CreateTicket() {
   const [error, setError] = useState('');
@@ -171,163 +172,177 @@ export default function CreateTicket() {
         </div>
       )}
 
-      <Row className="justify-content-center">
-        <Col xs={12} md={10} lg={8}>
-          <Card className="p-4 shadow-sm">
-            <h4 className="mb-3">Create Ticket</h4>
-            <Form onSubmit={handleSubmit}>
-              <Row className="mb-3">
-                <Col xs={12} md={6}>
-                  <Form.Group>
-                    <Form.Label>Ticket Subject</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="ticket_subject"
-                      value={formData.ticket_subject}
-                      onChange={handleChange}
-                      isInvalid={!!validationErrors.ticket_subject}
-                    />
-                    <Form.Control.Feedback type="invalid">{validationErrors.ticket_subject}</Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-                <Col xs={12} md={6}>
-                  <Form.Group>
-                    <Form.Label>Ticket Type</Form.Label>
-                    <Form.Select
-                      name="ticket_type"
-                      value={formData.ticket_type}
-                      onChange={handleChange}
-                      isInvalid={!!validationErrors.ticket_type}
-                    >
-                      <option value="">Select</option>
-                      <option value="incident">Incident</option>
-                      <option value="request">Request</option>
-                      <option value="inquiry">Inquiry</option>
-                    </Form.Select>
-                    <Form.Control.Feedback type="invalid">{validationErrors.ticket_type}</Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-              </Row>
+      <AnimatedContent
+        distance={100}
+        direction="vertical"
+        reverse={true}
+        duration={0.8}
+        ease="power3.out"
+        initialOpacity={0}
+        animateOpacity
+        scale={1.0}
+        threshold={0.1}
+        delay={0}
+      >
 
-              <Row className="mb-3">
-                <Col xs={12} md={6}>
-                  <Form.Group>
-                    <Form.Label>Status</Form.Label>
-                    <Form.Control type="text" name="ticket_status" value="Open" disabled />
-                  </Form.Group>
-                </Col>
-                <Col xs={12} md={6}>
-                  <Form.Group>
-                    <Form.Label>Urgency Level</Form.Label>
-                    <Form.Select
-                      name="ticket_urgencyLevel"
-                      value={formData.ticket_urgencyLevel}
-                      onChange={handleChange}
-                      isInvalid={!!validationErrors.ticket_urgencyLevel}
-                    >
-                      <option value="">Select</option>
-                      <option value="Low">Low</option>
-                      <option value="Medium">Medium</option>
-                      <option value="High">High</option>
-                      <option value="Critical">Critical</option>
-                    </Form.Select>
-                    <Form.Control.Feedback type="invalid">{validationErrors.ticket_urgencyLevel}</Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-              </Row>
+        <Row className="justify-content-center">
+          <Col xs={12} md={10} lg={8}>
+            <Card className="p-4 shadow-sm">
+              <h4 className="mb-3">Create Ticket</h4>
+              <Form onSubmit={handleSubmit}>
+                <Row className="mb-3">
+                  <Col xs={12} md={6}>
+                    <Form.Group>
+                      <Form.Label>Ticket Subject</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="ticket_subject"
+                        value={formData.ticket_subject}
+                        onChange={handleChange}
+                        isInvalid={!!validationErrors.ticket_subject}
+                      />
+                      <Form.Control.Feedback type="invalid">{validationErrors.ticket_subject}</Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                  <Col xs={12} md={6}>
+                    <Form.Group>
+                      <Form.Label>Ticket Type</Form.Label>
+                      <Form.Select
+                        name="ticket_type"
+                        value={formData.ticket_type}
+                        onChange={handleChange}
+                        isInvalid={!!validationErrors.ticket_type}
+                      >
+                        <option value="">Select</option>
+                        <option value="incident">Incident</option>
+                        <option value="request">Request</option>
+                        <option value="inquiry">Inquiry</option>
+                      </Form.Select>
+                      <Form.Control.Feedback type="invalid">{validationErrors.ticket_type}</Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                </Row>
 
-              <Row className="mb-3">
-                <Col xs={12} md={6}>
-                  <Form.Group>
-                    <Form.Label>Category</Form.Label>
-                    <Form.Select
-                      name="ticket_category"
-                      value={formData.ticket_category}
-                      onChange={handleChange}
-                      isInvalid={!!validationErrors.ticket_category}
-                    >
-                      <option value="">Select</option>
-                      <option value="hardware">Hardware</option>
-                      <option value="network">Network</option>
-                      <option value="software">Software</option>
-                    </Form.Select>
-                    <Form.Control.Feedback type="invalid">{validationErrors.ticket_category}</Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-                <Col xs={12} md={6}>
-                  <Form.Group>
-                    <Form.Label>Subcategory</Form.Label>
-                    <Form.Select
-                      name="ticket_SubCategory"
-                      value={formData.ticket_SubCategory}
-                      onChange={handleChange}
-                      disabled={!formData.ticket_category}
-                      isInvalid={!!validationErrors.ticket_SubCategory}
-                    >
-                      <option value="">Select</option>
-                      {subCategoryOptions[formData.ticket_category]?.map((subcat, idx) => (
-                        <option key={idx} value={subcat}>{subcat}</option>
-                      ))}
-                    </Form.Select>
-                    <Form.Control.Feedback type="invalid">{validationErrors.ticket_SubCategory}</Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-              </Row>
+                <Row className="mb-3">
+                  <Col xs={12} md={6}>
+                    <Form.Group>
+                      <Form.Label>Status</Form.Label>
+                      <Form.Control type="text" name="ticket_status" value="Open" disabled />
+                    </Form.Group>
+                  </Col>
+                  <Col xs={12} md={6}>
+                    <Form.Group>
+                      <Form.Label>Urgency Level</Form.Label>
+                      <Form.Select
+                        name="ticket_urgencyLevel"
+                        value={formData.ticket_urgencyLevel}
+                        onChange={handleChange}
+                        isInvalid={!!validationErrors.ticket_urgencyLevel}
+                      >
+                        <option value="">Select</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                      </Form.Select>
+                      <Form.Control.Feedback type="invalid">{validationErrors.ticket_urgencyLevel}</Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                </Row>
 
-              <Row className="mb-3">
-                <Col xs={12} md={6}>
-                  <Form.Group>
-                    <Form.Label>Asset Number <span className="fw-light">(optional)</span></Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="asset_number"
-                      value={formData.asset_number}
-                      onChange={handleChange}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
+                <Row className="mb-3">
+                  <Col xs={12} md={6}>
+                    <Form.Group>
+                      <Form.Label>Category</Form.Label>
+                      <Form.Select
+                        name="ticket_category"
+                        value={formData.ticket_category}
+                        onChange={handleChange}
+                        isInvalid={!!validationErrors.ticket_category}
+                      >
+                        <option value="">Select</option>
+                        <option value="hardware">Hardware</option>
+                        <option value="network">Network</option>
+                        <option value="software">Software</option>
+                      </Form.Select>
+                      <Form.Control.Feedback type="invalid">{validationErrors.ticket_category}</Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                  <Col xs={12} md={6}>
+                    <Form.Group>
+                      <Form.Label>Subcategory</Form.Label>
+                      <Form.Select
+                        name="ticket_SubCategory"
+                        value={formData.ticket_SubCategory}
+                        onChange={handleChange}
+                        disabled={!formData.ticket_category}
+                        isInvalid={!!validationErrors.ticket_SubCategory}
+                      >
+                        <option value="">Select</option>
+                        {subCategoryOptions[formData.ticket_category]?.map((subcat, idx) => (
+                          <option key={idx} value={subcat}>{subcat}</option>
+                        ))}
+                      </Form.Select>
+                      <Form.Control.Feedback type="invalid">{validationErrors.ticket_SubCategory}</Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                </Row>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Attachments <span className="fw-light">(optional)</span></Form.Label>
-                <Form.Control
-                  type="file"
-                  name="Attachments"
-                  multiple
-                  onChange={handleChange}
-                />
-              </Form.Group>
+                <Row className="mb-3">
+                  <Col xs={12} md={6}>
+                    <Form.Group>
+                      <Form.Label>Asset Number <span className="fw-light">(optional)</span></Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="asset_number"
+                        value={formData.asset_number}
+                        onChange={handleChange}
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Description</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={4}
-                  name="Description"
-                  value={formData.Description}
-                  onChange={handleChange}
-                  isInvalid={!!validationErrors.Description}
-                />
-                <Form.Control.Feedback type="invalid">{validationErrors.Description}</Form.Control.Feedback>
-              </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Attachments <span className="fw-light">(optional)</span></Form.Label>
+                  <Form.Control
+                    type="file"
+                    name="Attachments"
+                    multiple
+                    onChange={handleChange}
+                  />
+                </Form.Group>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Created By</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="created_by"
-                  value={fullname}
-                  disabled
-                />
-              </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Description</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={4}
+                    name="Description"
+                    value={formData.Description}
+                    onChange={handleChange}
+                    isInvalid={!!validationErrors.Description}
+                  />
+                  <Form.Control.Feedback type="invalid">{validationErrors.Description}</Form.Control.Feedback>
+                </Form.Group>
 
-              <div className="text-end">
-                <Button variant="primary" type="submit">Submit Ticket</Button>
-              </div>
-            </Form>
-          </Card>
-        </Col>
-      </Row>
+                <Form.Group className="mb-3">
+                  <Form.Label>Created By</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="created_by"
+                    value={fullname}
+                    disabled
+                  />
+                </Form.Group>
+
+                <div className="text-end">
+                  <Button variant="primary" type="submit">Submit Ticket</Button>
+                </div>
+              </Form>
+            </Card>
+          </Col>
+        </Row>
+      </AnimatedContent>
     </Container>
   );
 }

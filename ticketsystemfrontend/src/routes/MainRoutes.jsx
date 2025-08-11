@@ -19,8 +19,14 @@ const Assets = lazy(() => import('views/assets'))
 const Announcements = lazy(() => import('views/announcements'));
 const InActiveAnnouncement = lazy(() => import('views/announcements/inactiveannouncement'));
 
+const Knowledgebase = lazy(() => import('views/knowledgebase/knowledgebase'));
+const Hardware = lazy(() => import('views/knowledgebase/hardware'));
+const AHardware = lazy(() => import('views/knowledgebase/hardwarearchive'));
+const Software = lazy(() => import('views/knowledgebase/software'));
+const ASoftware = lazy(() => import('views/knowledgebase/softwarearchive'));
+const Network = lazy(() => import('views/knowledgebase/network'));
+const ANetwork = lazy(() => import('views/knowledgebase/networkarchive'));
 
-const Knowledgebase = lazy(() => import('views/pages/knowledgebase'));
 const Reports = lazy(() => import('views/pages/reports'));
 
 const Tickets = lazy(() => import('views/tickets'))
@@ -116,6 +122,30 @@ const MainRoutes = {
     {
       path: '/knowledgebase',
       element: withSpinner(<Knowledgebase />)
+    },
+    {
+      path: '/hardware',
+      element: withSpinner(<Hardware />)
+    },
+    {
+      path: '/hardwarearchive',
+      element: withSpinner(<AHardware />)
+    },
+    {
+      path: '/network',
+      element: withSpinner(<Network />)
+    },
+    {
+      path: '/networkarchive',
+      element: withSpinner(<ANetwork />)
+    },
+    {
+      path: '/software',
+      element: withSpinner(<Software />)
+    },
+    {
+      path: '/softwarearchive',
+      element: withSpinner(<ASoftware />)
     },
     {
       path: '/reports',

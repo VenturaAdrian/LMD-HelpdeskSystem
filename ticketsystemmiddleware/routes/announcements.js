@@ -58,12 +58,13 @@ const Announcement = db.define('users_master', {
 
 router.post('/add-anc', async (req, res) => {
     const currentTimestamp = new Date();
-    const { announcements, created_by } = req.body;
+    const { announcements, created_by, announcementTitle } = req.body;
 
     try {
         const [add] = await knex('announcements_master').insert({
             announcements,
             created_by,
+            announcementTitle,
             created_at: currentTimestamp
         }).returning('announcements_id');
 

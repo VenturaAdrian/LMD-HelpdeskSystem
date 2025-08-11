@@ -258,3 +258,51 @@ button.close {
     padding: 15px;
   }
 }
+
+.pulse-heading {
+  font-weight: bold;
+  font-size: calc(1.5rem + 1vw);
+  animation: pulse 10s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+
+.faq-wrapper {
+  background: linear-gradient(to right, #ffe798, #b8860b);
+  min-height: 100vh;
+  padding: 80px 0;
+  transition: opacity 1s ease-in-out, transform 0.8s ease;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.faq-wrapper.fade-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.accordion-button {
+  transition: background-color 0.3s ease;
+  font-weight: 500;
+  color: #333;
+}
+
+.accordion-button:hover {
+  background-color: #f8f9fa;
+}

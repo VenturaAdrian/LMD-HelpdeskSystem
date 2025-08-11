@@ -6,6 +6,7 @@ import config from 'config';
 
 export default function Announcements() {
     const [announcementText, setAnnouncementText] = useState('');
+    const [announcementTitleText, setAnnouncementTitleText] = useState('');
     const [announcementsList, setAnnouncementsList] = useState([]);
     const [fullname, setFullname] = useState({});
 
@@ -77,17 +78,19 @@ export default function Announcements() {
     const HandleSave = async () => {
         const empInfo = JSON.parse(localStorage.getItem("user"));
 
-        if (!announcementText.trim()) {
-            alert("Announcement cannot be empty.");
+        if (!announcementTitleText.trim() || !announcementText.trim()) {
+            setError("Unable to save empty fields, please try again.");
             return;
         }
         try {
             await axios.post(`${config.baseApi}/announcements/add-anc`, {
                 announcements: announcementText,
                 created_by: empInfo.user_name,
+                announcementTitle: announcementTitleText
             });
             setSuccess("Announcement created successfully!");
             setAnnouncementText('');
+            setAnnouncementTitleText('')
             setShowCard(false);
             window.location.reload();
         } catch (error) {
@@ -99,6 +102,7 @@ export default function Announcements() {
     const handleEditClick = (announcement) => {
         console.log("Editing announcement:", announcement);
         setAnnouncementText(announcement.announcements);
+        setAnnouncementTitleText(announcement.announcementTitle)
         setEditId(announcement.announcements_id);
         setIsEditing(true);
         setShowCard(true);
@@ -112,7 +116,8 @@ export default function Announcements() {
             await axios.post(`${config.baseApi}/announcements/update-anc`, {
                 announcement_id: editId,
                 announcements: announcementText,
-                updated_by: empInfo.user_name
+                updated_by: empInfo.user_name,
+                announcementTitle: announcementTitleText
             });
 
             setSuccess("Announcement updated successfully!");
@@ -156,12 +161,12 @@ export default function Announcements() {
     return (
         <Container
             fluid
-            className="pt-100"
+            className="pt-100 px-3 px-md-5"
             style={{
                 background: 'linear-gradient(to bottom, #ffe798ff, #b8860b)',
                 minHeight: '100vh',
                 paddingTop: '100px',
-                paddingBottom: '20px'
+                paddingBottom: '20px',
             }}
         >
 
@@ -179,7 +184,7 @@ export default function Announcements() {
                 (
                     <Row className="mb-3">
                         <Col>
-                            <div className="d-flex justify-content-end gap-2">
+                            <div className="d-flex flex-wrap justify-content-end gap-2">
                                 <Button variant="secondary" onClick={HandleArchive}>Archive</Button>
                                 <Button variant="primary" onClick={HandleAdd}>+ Create Post</Button>
                             </div>
@@ -206,7 +211,7 @@ export default function Announcements() {
                     currentAnnouncements.map((item) => (
                         <Card key={item.announcements_id} className="mb-4 shadow-sm" style={{ borderRadius: '15px' }}>
                             <Card.Body>
-                                <div className="d-flex align-items-center justify-content-between mb-2">
+                                <div className="d-flex align-items-center justify-content-between mb-4">
                                     <div className="d-flex align-items-center">
                                         <img
                                             src="src/assets/images/user/avatar-2.jpg"
@@ -261,7 +266,10 @@ export default function Announcements() {
                                         </div>
                                     )}
                                 </div>
-                                <Card.Text style={{ fontSize: '1.1rem' }}>
+                                <Card.Text className="mb-0" style={{ fontSize: '1.5rem' }}>
+                                    <b>{item.announcementTitle}</b>
+                                </Card.Text>
+                                <Card.Text className="mb-0" style={{ fontSize: '1.0rem' }}>
                                     {item.announcements}
                                 </Card.Text>
                             </Card.Body>
@@ -269,7 +277,7 @@ export default function Announcements() {
                         </Card>
                     )))}
                 {totalPages > 1 && (
-                    <div className="d-flex justify-content-center mt-3">
+                    <div className="d-flex justify-content-center mt-3 flex-wrap gap-2">
                         <Button
                             variant="miColor"
                             size="sm"
@@ -301,7 +309,21 @@ export default function Announcements() {
                         {isEditing ? "Edit Announcement" : "Create Announcement"}
                     </Card.Title>
                     <Form>
+                        {/* Title Input */}
+                        <Form.Group controlId="announcementTitle" className="mb-3">
+                            <Form.Label>Title</Form.Label>
+                            <Form.Control
+                                type="text"
+                                placeholder="Enter title"
+                                value={announcementTitleText}
+                                onChange={(e) => setAnnouncementTitleText(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
+
+                        {/* Announcement Textarea */}
                         <Form.Group controlId="announcementText">
+                            <Form.Label>Announcement</Form.Label>
                             <Form.Control
                                 as="textarea"
                                 rows={3}
@@ -311,13 +333,15 @@ export default function Announcements() {
                             />
                         </Form.Group>
 
-                        <div className="mt-3 d-flex justify-content-end">
+                        {/* Buttons */}
+                        <div className="mt-3 d-flex justify-content-end gap-2 flex-wrap">
                             <Button
                                 variant="secondary"
                                 onClick={() => {
                                     setShowCard(false);
                                     setIsEditing(false);
                                     setEditId(null);
+                                    setAnnouncementTitleText('');
                                     setAnnouncementText('');
                                 }}
                                 className="me-2"
