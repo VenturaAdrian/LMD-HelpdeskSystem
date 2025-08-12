@@ -236,21 +236,24 @@ export default function ViewHDTicket() {
                 });
                 setnoteofhduser(userMap)
 
-
+                //------------------------------------------------------------------------------------------------------------------------------
                 //get all feedback
                 const allfeedback = await axios.get(`${config.baseApi}/ticket/get-all-feedback/${ticket_id}`);
                 setAllFeedback(allfeedback.data);
 
-                //User data base on their user_id
-                const feedbackusername = allfeedback.data.map(user => user.user_id);
-                const feedbackRes = await axios.get(`${config.baseApi}/authentication/get-all-by-id`, {
-                    params: { user_id: JSON.stringify(feedbackusername) }
+                //User data base on their username
+                const feedbackusername = allfeedback.data.map(user => user.created_by);
+
+                const feedbackRes = await axios.get(`${config.baseApi}/authentication/get-all-review-usernames`, {
+                    params: { user_name: JSON.stringify(feedbackusername) }
                 });
+
                 //settin up full nmae by their user_id
                 const alluserMap = {}
                 feedbackRes.data.forEach(user => {
-                    alluserMap[user.user_id] = `${user.emp_FirstName}` + ' ' + `${user.emp_LastName}`;
+                    alluserMap[user.user_name] = `${user.emp_FirstName}` + ' ' + `${user.emp_LastName}`;
                 });
+                console.log(alluserMap)
                 setFeedBackUser(alluserMap)
 
 
@@ -330,7 +333,7 @@ export default function ViewHDTicket() {
                 const ticket = Array.isArray(fetchticket.data) ? fetchticket.data[0] : fetchticket.data;
                 setFormData(ticket);
                 setOriginalData(ticket);
-                console.log(ticket.assigned_collaborators)
+                console.log('ASSIGNED COLLABORATORS: ', ticket.assigned_collaborators)
             } catch (err) {
                 console.error('Error fetching data:', err);
             }
@@ -483,6 +486,17 @@ export default function ViewHDTicket() {
             dataToSend.append('updated_by', empInfo.user_name)
             dataToSend.append('changes_made', changesMade);
             dataToSend.append('assigned_collaborators', formData.assigned_collaborators);
+
+            if (formData.ticket_for) {
+                const changedTicketFor = await axios.get(`${config.baseApi}/authentication/get-by-username`, {
+                    params: { user_name: formData.ticket_for }
+                })
+                const newticketfor = changedTicketFor.data;
+                const newTF_location = newticketfor.emp_location;
+
+                dataToSend.append('assigned_location', newTF_location);
+
+            }
 
             if (formData.attachmentFiles && formData.attachmentFiles.length > 0) {
                 formData.attachmentFiles.forEach(file => {
@@ -1134,7 +1148,7 @@ export default function ViewHDTicket() {
                                                         </div>
                                                         <div className="d-flex justify-content-between align-items-center mt-2">
                                                             <small className="text-muted fst-italic">
-                                                                {feedbackuser[feedback.user_id] || feedback.user_id || 'Unknown'}
+                                                                {feedbackuser[feedback.created_by] || feedback.created_by || 'Unknown'}
                                                             </small>
                                                             <small className="text-muted">
                                                                 {feedback.created_at

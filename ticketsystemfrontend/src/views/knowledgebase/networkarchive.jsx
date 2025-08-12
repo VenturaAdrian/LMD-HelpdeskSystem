@@ -20,6 +20,19 @@ export default function NetworkArchive() {
     const [addMode, setAddMode] = useState(false);
     const [editMode, setEditMode] = useState(false);
 
+    const [access, setAccess] = useState(false)
+
+    // Check user access
+    useEffect(() => {
+        const userInfo = JSON.parse(localStorage.getItem("user"));
+
+        if (['tier1', 'tier2', 'tier3'].includes(userInfo.emp_tier)) {
+            setAccess(true)
+        } else if (userInfo.emp_tier === 'none') {
+            setAccess(false)
+        }
+    })
+
     // Auto-hide alerts
     useEffect(() => {
         if (error) {
@@ -192,10 +205,11 @@ export default function NetworkArchive() {
                 <Card className="p-4 shadow-lg" style={{ borderRadius: "20px", backgroundColor: "#fff" }}>
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <h2 className="fw-bold text-dark mb-0">Archived Network Questions</h2>
-                        <div className="d-flex gap-2">
-                            <Button variant="primary" onClick={() => navigate('/network')}>Network</Button>
-
-                        </div>
+                        {access && (
+                            <div className="d-flex gap-2">
+                                <Button variant="primary" onClick={() => navigate('/network')}>Network</Button>
+                            </div>
+                        )}
                     </div>
 
                     <hr />
@@ -212,55 +226,59 @@ export default function NetworkArchive() {
                                             style={{ flex: 1 }}
                                             dangerouslySetInnerHTML={{ __html: faq.answer }}
                                         />
-                                        {/* EDIT BUTTON */}
-                                        <Button
-                                            variant="outline-secondary"
-                                            size="sm"
-                                            className="ms-2"
-                                            onClick={() => {
-                                                setNewTitle(faq.question);
-                                                setNewContent(faq.answer);
-                                                setShowModal(true);
-                                                setEditMode(true);
-                                                setKbID(faq.id);
-                                            }}
-                                        >
-                                            <PencilSquare />
-                                        </Button>
-                                        {/* Delete Button */}
-                                        <Button
-                                            variant="outline-secondary"
-                                            size="sm"
-                                            className="ms-2"
-                                            onClick={() => {
-                                                handleDelete(faq.id);
-                                                setKbID(faq.id);
-                                                setShowModal(false);
-                                                setNewTitle("");
-                                                setNewContent("");
-                                                setAddMode(false);
-                                                setEditMode(false);
-                                            }}
-                                        >
-                                            <Trash3Fill />
-                                        </Button>
-                                        {/* Re-Activate */}
-                                        <Button
-                                            variant="outline-secondary"
-                                            size="sm"
-                                            className="ms-2"
-                                            onClick={() => {
-                                                handleUnArchive(faq.id);
-                                                setKbID(faq.id);
-                                                setShowModal(false);
-                                                setNewTitle("");
-                                                setNewContent("");
-                                                setAddMode(false);
-                                                setEditMode(false);
-                                            }}
-                                        >
-                                            <Archive />
-                                        </Button>
+                                        {access && (
+                                            <div>
+                                                {/* EDIT BUTTON */}
+                                                <Button
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    className="ms-2"
+                                                    onClick={() => {
+                                                        setNewTitle(faq.question);
+                                                        setNewContent(faq.answer);
+                                                        setShowModal(true);
+                                                        setEditMode(true);
+                                                        setKbID(faq.id);
+                                                    }}
+                                                >
+                                                    <PencilSquare />
+                                                </Button>
+                                                {/* Delete Button */}
+                                                <Button
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    className="ms-2"
+                                                    onClick={() => {
+                                                        handleDelete(faq.id);
+                                                        setKbID(faq.id);
+                                                        setShowModal(false);
+                                                        setNewTitle("");
+                                                        setNewContent("");
+                                                        setAddMode(false);
+                                                        setEditMode(false);
+                                                    }}
+                                                >
+                                                    <Trash3Fill />
+                                                </Button>
+                                                {/* Re-Activate */}
+                                                <Button
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    className="ms-2"
+                                                    onClick={() => {
+                                                        handleUnArchive(faq.id);
+                                                        setKbID(faq.id);
+                                                        setShowModal(false);
+                                                        setNewTitle("");
+                                                        setNewContent("");
+                                                        setAddMode(false);
+                                                        setEditMode(false);
+                                                    }}
+                                                >
+                                                    <Archive />
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
                                 </Accordion.Body>
                             </Accordion.Item>

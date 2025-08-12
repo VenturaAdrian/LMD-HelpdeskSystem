@@ -294,7 +294,8 @@ router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
             updated_by,
             assigned_collaborators,
             ticket_for,
-            changes_made
+            changes_made,
+            assigned_location
         } = req.body;
 
 
@@ -351,6 +352,7 @@ router.post('/update-ticket', upload.array('attachments'), async (req, res) => {
             Attachments: attachmentPath,
             Description,
             assigned_collaborators,
+            assigned_location,
             ticket_for,
             updated_at: currentTimestamp,
             updated_by
@@ -526,6 +528,16 @@ router.get('/get-all-feedback/:ticket_id', async (req, res) => {
         console.log('triggered /get-all-feedback/:ticket_id');
     } catch (err) {
         console.log('INTERNAL ERROR: ', err)
+    }
+})
+
+router.get('/get-all-feedback', async (req, res) => {
+    try {
+        const getAll = await knex('review_master').select('*');
+        res.json(getAll);
+        console.log('Triggered /get-all-feedback');
+    } catch (err) {
+        console.log('INTERNAL ERROR: ', err);
     }
 })
 

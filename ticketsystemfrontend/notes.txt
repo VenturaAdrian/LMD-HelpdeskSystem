@@ -55,126 +55,15 @@ When did it start?:
 Have you tried any troubleshooting steps?:
 Additional notes
 --------------------------------------------------------------------------------
-// Menu configuration for default layout
-const menuItems = {
-  items: [
-    {
-      id: 'tools',
-      title: 'Tools',
-      type: 'group',
-      icon: 'icon-pages',
-      children: [
+  const [access, setAccess] = useState(false)
 
-        {
-          id: 'login',
-          title: 'Login',
-          type: 'item',
-          icon: 'material-icons-two-tone',
-          iconname: 'verified_user',
-          url: '/login',
-          target: true
-        },
-        {
-          id: 'register',
-          title: 'Register',
-          type: 'item',
-          icon: 'material-icons-two-tone',
-          iconname: 'person_add_alt_1',
-          url: '/register',
-          target: true
-        },
-        {
-          id: 'create-ticket',
-          title: 'Create Ticket',
-          type: 'item',
-          icon: 'material-icons-two-tone',
-          iconname: 'add_box',
-          url: '/create-ticket',
-          target: true
-        },
-        {
-          id: 'my-ticket',
-          title: 'My Ticket',
-          type: 'item',
-          icon: 'material-icons-two-tone',
-          iconname: 'confirmation_number',
-          url: '/my-ticket',
-          target: true
-        },
-        {
-          id: 'open-ticket',
-          title: 'Open Tickets',
-          type: 'item',
-          icon: 'material-icons-two-tone',
-          iconname: 'list_alt',
-          url: '/open-ticket',
-          target: true
-        },
+ // Check user access
+    useEffect(() => {
+        const userInfo = JSON.parse(localStorage.getItem("user"));
 
-        {
-          id: 'all-tickets',
-          title: 'All Tickets',
-          type: 'item',
-          icon: 'material-icons-two-tone',
-          iconname: 'all_inbox',
-          url: '/all-tickets',
-          target: true
+        if (['tier1', 'tier2', 'tier3'].includes(userInfo.emp_tier)) {
+            setAccess(true)
+        } else if (userInfo.emp_tier === 'none') {
+            setAccess(false)
         }
-      ]
-    },
-    {
-      id: 'tools',
-      title: 'Pages',
-      type: 'group',
-      icon: 'icon-pages',
-      children: [
-        {
-          id: 'dashboard',
-          title: 'Dashboard',
-          type: 'item',
-          icon: 'material-icons-two-tone',
-          iconname: 'home',
-          url: '/dashboard'
-        },
-        {
-          id: 'assets',
-          title: 'Assets',
-          type: 'item',
-          icon: 'material-icons-two-tone',
-          iconname: 'desktop_windows',
-          url: '/assets',
-          target: true
-        },
-        {
-          id: 'announcements',
-          title: 'Announcements',
-          type: 'item',
-          icon: 'material-icons-two-tone',
-          iconname: 'announcements',
-          url: '/announcements',
-          target: true
-        },
-        {
-          id: 'knowledgebase',
-          title: 'Knowledge base',
-          type: 'item',
-          icon: 'material-icons-two-tone',
-          iconname: 'book',
-          url: '/knowledgebase',
-          target: true
-        },
-        {
-          id: 'reports',
-          title: 'Reports',
-          type: 'item',
-          icon: 'material-icons-two-tone',
-          iconname: 'bar_chart',
-          url: '/reports',
-          target: true
-        },
-      ]
-    }
-  ]
-};
-
-export default menuItems;
+    })

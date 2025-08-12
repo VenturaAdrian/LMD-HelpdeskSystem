@@ -31,12 +31,16 @@ export default function History() {
                 const ticketRes = await axios.get(`${config.baseApi}/ticket/get-all-ticket`);
                 const allTickets = ticketRes.data;
 
+                // ------------------- User Data ------------------------//
+
                 // Closed tickets for the user
                 const userClosedTickets = allTickets.filter(ticket =>
                     ticket.ticket_for === userData.user_name && ticket.is_reviewed === true
 
                 );
                 setTicketsFor(userClosedTickets);
+
+                //------------------------Admin data ------------------------//
 
                 // Fetch notes
                 const notesRes = await axios.get(`${config.baseApi}/authentication/get-all-notes`);
@@ -46,9 +50,27 @@ export default function History() {
                 const createdNotes = notes.filter(note => note.created_by === userData.user_name);
                 //Filter duplicated id's
                 const uniqueIds = [...new Set(createdNotes.map(note => note.ticket_id))];
-                // Filter the users worked tickets based on the notes
-                const worked = allTickets.filter(ticket => uniqueIds.includes(ticket.ticket_id) || ticket.is_reviewed === true || (ticket.assigned_collaborators === userData.user_name &&
-                    ticket.assigned_collaborators.split(',').includes(userData.user_name)));
+
+
+
+                const worked = allTickets.filter(ticket => {
+                    const isUniqueId = uniqueIds.includes(ticket.ticket_id);
+                    const isCollaborator = ticket.assigned_collaborators
+                        ?.split(',')
+                        .map(name => name.trim())
+                        .includes(userData.user_name);
+
+                    const isAssignedOrCreatedByUser =
+                        ticket.assigned_to === userData.user_name ||
+                        ticket.created_by === userData.user_name ||
+                        ticket.updated_by === userData.user_name;
+
+                    return (
+                        isUniqueId ||
+                        isCollaborator ||
+                        ((isUniqueId || isCollaborator || isAssignedOrCreatedByUser) && ticket.is_reviewed === true)
+                    );
+                });
 
 
 

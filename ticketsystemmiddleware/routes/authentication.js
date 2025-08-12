@@ -191,6 +191,7 @@ router.get('/get-by-username', async (req, res, next) => {
       }
     })
     res.json(getCreatedBy[0])
+    console.log(getCreatedBy[0])
   } catch (err) {
     console.log('GET BY USERNAME CONOSOLE: ', err)
   }
@@ -211,6 +212,22 @@ router.get('/get-by-id', async (req, res, next) => {
 const { Op } = require('sequelize');
 
 router.get('/get-all-notes-usernames', async (req, res) => {
+  try {
+    const usernames = JSON.parse(req.query.user_name); // Convert string back to array
+    const users = await Users1.findAll({
+      where: {
+        user_name: { [Op.in]: usernames }
+      }
+    });
+    res.json(users);
+    console.log(users)
+  } catch (err) {
+    console.error('Error fetching multiple users:', err);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+router.get('/get-all-review-usernames', async (req, res) => {
   try {
     const usernames = JSON.parse(req.query.user_name); // Convert string back to array
     const users = await Users1.findAll({
