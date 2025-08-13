@@ -42,7 +42,8 @@ const History = lazy(() => import('views/tickets/history'));
 const AllTicketsByUser = lazy(() => import('views/report/allticketsbyuser'));
 const AllTicketsBySite = lazy(() => import('views/report/allticketbysite'));
 const AllTicketsByStatus = lazy(() => import('views/report/allticketsbystatus'));
-
+const AllTicketsByCategory = lazy(() => import('views/report/getallbycategory'));
+const AllTicketbyType = lazy(() => import('views/report/allticketbytype'));
 
 const Profile = lazy(() => import('views/pages/profile'));
 const Users = lazy(() => import('views/users'))
@@ -87,6 +88,14 @@ const MainRoutes = {
     {
       path: '/sample2',
       element: withSpinner(<AllTicketsByStatus />)
+    },
+    {
+      path: '/sample3',
+      element: withSpinner(<AllTicketsByCategory />)
+    },
+    {
+      path: '/sample4',
+      element: withSpinner(<AllTicketbyType />)
     },
     {
       path: '/dashboard',

@@ -12,10 +12,9 @@ import {
     Legend
 } from 'chart.js';
 
-// Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export default function AllTicketsByUser() {
+export default function AllTicketsByUser({ filterType }) {
     const [alluser, setAllUser] = useState([]);
     const [chartData, setChartData] = useState(null);
 
@@ -23,12 +22,8 @@ export default function AllTicketsByUser() {
         const fetchUsers = async () => {
             try {
                 const getalluser = await axios.get(`${config.baseApi}/authentication/get-all-users`);
-                const a = getalluser.data || [];
-
                 const tiers = ["tier1", "tier2", "tier3"];
-                const filtertiers = a.filter(hd => tiers.includes(hd.emp_tier));
-                setAllUser(filtertiers);
-                console.log(filtertiers)
+                setAllUser(getalluser.data.filter(hd => tiers.includes(hd.emp_tier)));
             } catch (err) {
                 console.log("Unable to fetch users: ", err);
             }
@@ -36,19 +31,79 @@ export default function AllTicketsByUser() {
         fetchUsers();
     }, []);
 
+    const isInFilter = (date) => {
+        const d = new Date(date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        switch (filterType) {
+            case "today":
+                return d.toDateString() === today.toDateString();
+
+            case "thisWeek": {
+                const firstDay = new Date(today);
+                firstDay.setDate(today.getDate() - today.getDay());
+                const lastDay = new Date(firstDay);
+                lastDay.setDate(firstDay.getDate() + 6);
+                return d >= firstDay && d <= lastDay;
+            }
+
+            case "lastWeek": {
+                const firstDay = new Date(today);
+                firstDay.setDate(today.getDate() - today.getDay() - 7);
+                const lastDay = new Date(firstDay);
+                lastDay.setDate(firstDay.getDate() + 6);
+                return d >= firstDay && d <= lastDay;
+            }
+
+            case "thisMonth":
+                return (
+                    d.getFullYear() === today.getFullYear() &&
+                    d.getMonth() === today.getMonth()
+                );
+
+            case "perMonth":
+                return d.getFullYear() === today.getFullYear();
+
+            case "perYear":
+                return true;
+
+            case "all":
+            default:
+                return true;
+        }
+    };
+
     useEffect(() => {
         const FetchData = async () => {
             const ticketRes = await axios.get(`${config.baseApi}/ticket/get-all-ticket`);
-            const allTickets = ticketRes.data;
+            let allTickets = ticketRes.data || [];
 
             const notesRes = await axios.get(`${config.baseApi}/authentication/get-all-notes`);
             const notes = notesRes.data || [];
 
-            const userTicketCount = {};
+            // Filter tickets by selected time range
+            allTickets = allTickets.filter(t => isInFilter(t.created_at));
 
-            alluser.forEach(user => {
+            let labels = [];
+            let datasets = [];
+            const today = new Date();
+
+            if (filterType === "perMonth") {
+                labels = [
+                    "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                ];
+            } else if (filterType === "perYear") {
+                labels = [...new Set(allTickets.map(t => new Date(t.created_at).getFullYear()))].sort();
+            } else if (filterType === "thisMonth") {
+                labels = [`${today.toLocaleString('default', { month: 'long' })} ${today.getFullYear()}`];
+            } else {
+                labels = [filterType === "all" ? "All" : filterType];
+            }
+
+            datasets = alluser.map(user => {
                 const username = user.user_name;
-
                 const createdNotes = notes.filter(note => note.created_by === username);
                 const uniqueIds = [...new Set(createdNotes.map(note => note.ticket_id))];
 
@@ -71,56 +126,79 @@ export default function AllTicketsByUser() {
                     );
                 });
 
-                userTicketCount[username] = worked.length;
+                let counts;
+                if (filterType === "perMonth") {
+                    counts = labels.map((_, monthIndex) =>
+                        worked.filter(t => new Date(t.created_at).getMonth() === monthIndex).length
+                    );
+                } else if (filterType === "perYear") {
+                    counts = labels.map(year =>
+                        worked.filter(t => new Date(t.created_at).getFullYear() === year).length
+                    );
+                } else {
+                    counts = [worked.length];
+                }
+
+                return {
+                    label: username,
+                    data: counts,
+                    backgroundColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(
+                        Math.random() * 255
+                    )}, ${Math.floor(Math.random() * 255)}, 0.6)`
+                };
             });
 
-            // Convert counts to chart.js format
-            setChartData({
-                labels: Object.keys(userTicketCount),
-                datasets: [
-                    {
-                        label: 'Tickets per User',
-                        data: Object.values(userTicketCount),
-                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    }
-                ]
-            });
+            setChartData({ labels, datasets });
         };
 
         if (alluser.length > 0) {
             FetchData();
         }
-    }, [alluser]);
+    }, [alluser, filterType]);
+
+    if (!chartData) {
+        return <div className="bento-loading">Loading chart data...</div>;
+    }
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                justifyContent: 'center',   // Center horizontally
-                alignItems: 'center',       // Center vertically
-                height: '100vh',            // Full screen height
-                width: '100vh'
-            }}
-        >
-            <div style={{ width: "80%" }}>
-                {chartData && (
-                    <Bar
-                        data={chartData}
-                        options={{
-                            responsive: true,
-                            plugins: {
-                                legend: { position: 'top' },
-                                title: { display: true, text: 'All Worked Tickets by User' }
-                            },
-                            scales: {
-                                y: { beginAtZero: true }
+        <Bar
+            data={chartData}
+            options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "top",
+                        labels: {
+                            boxWidth: 12,
+                            font: {
+                                size: 11
                             }
-                        }}
-                    />
-                )}
-            </div>
-        </div>
+                        }
+                    },
+                    title: {
+                        display: false // Title handled by parent container
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    }
+                }
+            }}
+        />
     );
 }
+

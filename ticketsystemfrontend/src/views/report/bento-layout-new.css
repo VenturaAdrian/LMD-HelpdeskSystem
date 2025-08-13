@@ -1,0 +1,86 @@
+/* bento-layout-new.css */
+
+/* Container for the whole grid */
+.bento-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 16px;
+}
+
+/* Large left chart (spans 2 rows) */
+.bento-users {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+/* Top right top */
+.bento-sites {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+/* Top right bottom */
+.bento-types {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+/* Bottom left */
+.bento-status {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+/* Bottom right */
+.bento-category {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+/* Each item box styling */
+.bento-item {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.bento-chart-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.bento-chart-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.bento-chart-wrapper {
+  flex: 1;
+}
+
+/* Filter control at the bottom */
+.bento-filter {
+  grid-column: 1 / span 2;
+  margin-top: 16px;
+}
+
+/* Mobile responsive: stack items vertically */
+@media (max-width: 768px) {
+  .bento-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  .bento-users,
+  .bento-sites,
+  .bento-types,
+  .bento-status,
+  .bento-category {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
